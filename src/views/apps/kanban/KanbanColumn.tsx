@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import {
   Box,
   Button,
@@ -13,9 +13,13 @@ import {
   TextField,
   Typography,
   useTheme,
+  Collapse,
+  // Divider,
+  Checkbox,
 } from '@mui/material';
-import { IconDotsVertical, IconPlus, IconTrash } from '@tabler/icons-react';
-import { useDroppable } from '@dnd-kit/core';
+import { IconDotsVertical, IconPlus, IconTrash, IconChevronDown, IconChevronRight } from '@tabler/icons-react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Card, Column } from './kanban.types';
 import KanbanCard from './KanbanCard';
@@ -23,21 +27,36 @@ import KanbanCard from './KanbanCard';
 type KanbanColumnProps = {
   column: Column;
   cards: Card[];
+  completedCards?: Card[];
   onAddCard: (columnId: string, card: Omit<Card, 'id'>) => void;
   onUpdateCard: (cardId: string, updates: Partial<Card>) => void;
   onRemoveCard: (cardId: string) => void;
   onRemoveColumn: (columnId: string) => void;
 };
 
-const KanbanColumn = ({ column, cards, onAddCard, onUpdateCard, onRemoveCard, onRemoveColumn }: KanbanColumnProps) => {
+const KanbanColumn = ({ column, cards, completedCards = [], onAddCard, onUpdateCard, onRemoveCard, onRemoveColumn }: KanbanColumnProps) => {
   const theme = useTheme();
-  const { setNodeRef, isOver } = useDroppable({
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
     id: column.id,
     data: { type: 'column', columnId: column.id },
   });
 
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [completedExpanded, setCompletedExpanded] = useState(false);
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -45,8 +64,6 @@ const KanbanColumn = ({ column, cards, onAddCard, onUpdateCard, onRemoveCard, on
     dueDate: '',
     labels: '',
   });
-
-  const borderColor = theme.palette.divider;
 
   const handleSubmit = () => {
     if (!form.title.trim()) {
@@ -68,19 +85,33 @@ const KanbanColumn = ({ column, cards, onAddCard, onUpdateCard, onRemoveCard, on
     setAddOpen(false);
   };
 
-  const columnCards = useMemo(() => cards, [cards]);
+  const handleUncompleteCard = (cardId: string) => {
+    onUpdateCard(cardId, { completed: false });
+  };
+
+  // Warna background sesuai kolom dari Figma
+  const getColumnColor = () => {
+    const title = column.title.toLowerCase();
+    if (title.includes('todo')) return '#E8EAF6';
+    if (title.includes('progress')) return '#E3F2FD';
+    if (title.includes('pending')) return '#EDE7F6';
+    if (title.includes('done')) return '#E0F2F1';
+    return theme.palette.background.paper;
+  };
 
   return (
     <Box
+      ref={setNodeRef}
+      style={style}
       sx={{
         minWidth: { xs: 280, sm: 320 },
         width: { xs: 280, sm: 320 },
-        backgroundColor: theme.palette.background.paper,
-        borderRadius: 2,
+        backgroundColor: getColumnColor(),
+        borderRadius: 3,
         p: 2,
-        border: `1px solid ${borderColor}`,
+        border: 'none',
         transition: 'all 0.2s ease',
-        boxShadow: isOver ? theme.shadows[4] : theme.shadows[2],
+        boxShadow: isDragging ? '0px 8px 24px rgba(0, 0, 0, 0.15)' : 'none',
         flexShrink: 0,
         height: 'fit-content',
         maxHeight: '100%',
@@ -89,18 +120,29 @@ const KanbanColumn = ({ column, cards, onAddCard, onUpdateCard, onRemoveCard, on
       }}
     >
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-        <Typography variant="subtitle1" fontWeight={700} color="text.primary">
-          {column.title}
-        </Typography>
+        <Box
+          {...attributes}
+          {...listeners}
+          sx={{
+            cursor: isDragging ? 'grabbing' : 'grab',
+            display: 'flex',
+            alignItems: 'center',
+            flex: 1,
+          }}
+        >
+          <Typography variant="h6" fontWeight={600} color="text.primary" sx={{ fontSize: '16px' }}>
+            {column.title}
+          </Typography>
+        </Box>
         <Stack direction="row" spacing={0.5}>
           <IconButton
             size="small"
-            color="primary"
             aria-label="Add card"
             onClick={() => setAddOpen(true)}
             sx={{ 
+              color: 'text.primary',
               '&:hover': { 
-                backgroundColor: theme.palette.primary.main + '20' 
+                backgroundColor: 'rgba(0, 0, 0, 0.04)' 
               } 
             }}
           >
@@ -116,7 +158,7 @@ const KanbanColumn = ({ column, cards, onAddCard, onUpdateCard, onRemoveCard, on
         </Stack>
       </Stack>
 
-      <SortableContext items={columnCards.map((card) => card.id)} strategy={verticalListSortingStrategy}>
+      <SortableContext items={cards.map((card) => card.id)} strategy={verticalListSortingStrategy}>
         <Box
           ref={setNodeRef}
           sx={{
@@ -128,28 +170,210 @@ const KanbanColumn = ({ column, cards, onAddCard, onUpdateCard, onRemoveCard, on
             overflowY: 'auto',
             pr: 0.5,
             '&::-webkit-scrollbar': {
-              width: 6,
+              width: 5,
             },
             '&::-webkit-scrollbar-track': {
               backgroundColor: 'transparent',
             },
             '&::-webkit-scrollbar-thumb': {
-              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
+              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)',
               borderRadius: 3,
+              '&:hover': {
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)',
+              },
             },
           }}
         >
-          {columnCards.map((card) => (
-            <KanbanCard
-              key={card.id}
-              card={card}
-              columnId={column.id}
-              onUpdate={onUpdateCard}
-              onDelete={onRemoveCard}
-            />
-          ))}
+          {cards.length === 0 && completedCards.length > 0 ? (
+            // Show "All tasks completed" message when no active cards
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                py: 4,
+                px: 2,
+                textAlign: 'center',
+              }}
+            >
+              {/* Animated Check Circle Icon */}
+              <Box
+                sx={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mb: 2,
+                  boxShadow: '0 4px 20px rgba(76, 175, 80, 0.3)',
+                  animation: 'scaleIn 0.5s ease-out',
+                  '@keyframes scaleIn': {
+                    from: {
+                      transform: 'scale(0)',
+                      opacity: 0,
+                    },
+                    to: {
+                      transform: 'scale(1)',
+                      opacity: 1,
+                    },
+                  },
+                }}
+              >
+                <Box
+                  component="svg"
+                  width="48"
+                  height="48"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  sx={{
+                    animation: 'checkDraw 0.5s ease-out 0.3s both',
+                    '@keyframes checkDraw': {
+                      from: {
+                        strokeDashoffset: 50,
+                      },
+                      to: {
+                        strokeDashoffset: 0,
+                      },
+                    },
+                  }}
+                >
+                  <path
+                    d="M5 13l4 4L19 7"
+                    stroke="white"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeDasharray="50"
+                    strokeDashoffset="0"
+                  />
+                </Box>
+              </Box>
+              <Typography
+                variant="h6"
+                fontWeight={600}
+                color="text.primary"
+                sx={{ mb: 0.5 }}
+              >
+                Semua tugas selesai
+              </Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+              >
+                Bagus
+              </Typography>
+            </Box>
+          ) : (
+            cards.map((card) => (
+              <KanbanCard
+                key={card.id}
+                card={card}
+                columnId={column.id}
+                onUpdate={onUpdateCard}
+                onDelete={onRemoveCard}
+              />
+            ))
+          )}
         </Box>
       </SortableContext>
+
+      {/* Completed Tasks Section */}
+      {completedCards.length > 0 && (
+        <Box sx={{ mt: 2 }}>
+          <Box 
+            onClick={() => setCompletedExpanded(!completedExpanded)}
+            sx={{ 
+              display: 'flex',
+              alignItems: 'center',
+              py: 1,
+              px: 1,
+              cursor: 'pointer',
+              borderRadius: 1,
+              '&:hover': {
+                bgcolor: 'rgba(0, 0, 0, 0.03)',
+              },
+              transition: 'background-color 0.2s',
+            }}
+          >
+            <IconButton size="small" sx={{ p: 0.5, mr: 0.5 }}>
+              {completedExpanded ? <IconChevronDown size={18} /> : <IconChevronRight size={18} />}
+            </IconButton>
+            <Typography 
+              variant="body2" 
+              fontWeight={500}
+              color="text.secondary"
+              sx={{ fontSize: '0.875rem' }}
+            >
+              Selesai ({completedCards.length})
+            </Typography>
+          </Box>
+
+          <Collapse in={completedExpanded}>
+            <Box sx={{ mt: 1 }}>
+              {completedCards.map((card) => (
+                <Box
+                  key={card.id}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    py: 1,
+                    px: 1,
+                    mb: 0.5,
+                    borderRadius: 1,
+                    bgcolor: 'rgba(255, 255, 255, 0.7)',
+                    '&:hover': {
+                      bgcolor: 'rgba(255, 255, 255, 0.9)',
+                    },
+                    transition: 'background-color 0.2s',
+                  }}
+                >
+                  <Checkbox
+                    checked={true}
+                    onChange={() => handleUncompleteCard(card.id)}
+                    size="small"
+                    sx={{
+                      p: 0,
+                      mr: 1,
+                      color: 'success.main',
+                      '&.Mui-checked': {
+                        color: 'success.main',
+                      },
+                    }}
+                  />
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography 
+                      variant="body2"
+                      sx={{
+                        textDecoration: 'line-through',
+                        color: 'text.secondary',
+                        fontSize: '0.875rem',
+                        wordBreak: 'break-word',
+                      }}
+                    >
+                      {card.title}
+                    </Typography>
+                    {card.dueDate && (
+                      <Typography 
+                        variant="caption" 
+                        color="text.disabled"
+                        sx={{ fontSize: '0.75rem' }}
+                      >
+                        {new Date(card.dueDate).toLocaleDateString('id-ID', { 
+                          day: 'numeric', 
+                          month: 'short' 
+                        })}
+                      </Typography>
+                    )}
+                  </Box>
+                </Box>
+              ))}
+            </Box>
+          </Collapse>
+        </Box>
+      )}
 
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
         <MenuItem

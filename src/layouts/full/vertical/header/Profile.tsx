@@ -9,18 +9,22 @@ import { useNavigate } from 'react-router-dom';
 import { IconMail } from '@tabler/icons-react';
 import { Stack } from '@mui/system';
 
-import ProfileImg from 'src/assets/images/profile/user-1.jpg';
-import unlimitedImg from 'src/assets/images/backgrounds/unlimited-bg.png';
 import useMounted from 'src/guards/authGuard/UseMounted';
 import useAuth from 'src/guards/authGuard/UseAuth';
 
 const Profile = () => {
-  const [anchorEl2, setAnchorEl2] = useState(null);
+  const [anchorEl2, setAnchorEl2] = useState<null | HTMLElement>(null);
   const mounted = useMounted();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
 
-  const handleClick2 = (event: any) => {
+  // Extract user data
+  const userName = user?.name || user?.email?.split('@')[0] || 'User';
+  const userEmail = user?.email || 'user@example.com';
+  const userAvatar = user?.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=5D87FF&color=fff&size=128`;
+  const userRole = 'Google User';
+
+  const handleClick2 = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl2(event.currentTarget);
   };
   const handleClose2 = () => {
@@ -55,8 +59,8 @@ const Profile = () => {
         onClick={handleClick2}
       >
         <Avatar
-          src={ProfileImg}
-          alt={ProfileImg}
+          src={userAvatar}
+          alt={userName}
           sx={{
             width: 35,
             height: 35,
@@ -83,13 +87,13 @@ const Profile = () => {
       >
         <Typography variant="h5">User Profile</Typography>
         <Stack direction="row" py={3} spacing={2} alignItems="center">
-          <Avatar src={ProfileImg} alt={ProfileImg} sx={{ width: 95, height: 95 }} />
+          <Avatar src={userAvatar} alt={userName} sx={{ width: 95, height: 95 }} />
           <Box>
             <Typography variant="subtitle2" color="textPrimary" fontWeight={600}>
-              Mathew Anderson
+              {userName}
             </Typography>
             <Typography variant="subtitle2" color="textSecondary">
-             Designer
+              {userRole}
             </Typography>
             <Typography
               variant="subtitle2"
@@ -99,7 +103,7 @@ const Profile = () => {
               gap={1}
             >
               <IconMail width={15} height={15} />
-              info@modernize.com
+              {userEmail}
             </Typography>
           </Box>
         </Stack>
@@ -107,71 +111,55 @@ const Profile = () => {
         {dropdownData.profile.map((profile) => (
           <Box key={profile.title}>
             <Box sx={{ py: 2, px: 0 }} className="hover-text-primary">
-              <Box>
-                <Stack direction="row" spacing={2}>
-                  <Box
-                    width="45px"
-                    height="45px"
-                    bgcolor="primary.light"
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
+              <Stack direction="row" spacing={2}>
+                <Box
+                  width="45px"
+                  height="45px"
+                  bgcolor="primary.light"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                >
+                  <Avatar
+                    src={profile.icon}
+                    alt={profile.icon}
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: 0,
+                    }}
+                  />
+                </Box>
+                <Box>
+                  <Typography
+                    variant="subtitle2"
+                    fontWeight={600}
+                    color="textPrimary"
+                    className="text-hover"
+                    noWrap
+                    sx={{
+                      width: '240px',
+                    }}
                   >
-                    <Avatar
-                      src={profile.icon}
-                      alt={profile.icon}
-                      sx={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: 0,
-                      }}
-                    />
-                  </Box>
-                  <Box>
-                    <Typography
-                      variant="subtitle2"
-                      fontWeight={600}
-                      color="textPrimary"
-                      className="text-hover"
-                      noWrap
-                      sx={{
-                        width: '240px',
-                      }}
-                    >
-                      {profile.title}
-                    </Typography>
-                    <Typography
-                      color="textSecondary"
-                      variant="subtitle2"
-                      sx={{
-                        width: '240px',
-                      }}
-                      noWrap
-                    >
-                      {profile.subtitle}
-                    </Typography>
-                  </Box>
-                </Stack>
-              </Box>
+                    {profile.title}
+                  </Typography>
+                  <Typography
+                    color="textSecondary"
+                    variant="subtitle2"
+                    sx={{
+                      width: '240px',
+                    }}
+                    noWrap
+                  >
+                    {profile.subtitle}
+                  </Typography>
+                </Box>
+              </Stack>
             </Box>
           </Box>
         ))}
         <Box mt={2}>
-          <Box bgcolor="primary.light" p={3} mb={3} overflow="hidden" position="relative">
-            <Box display="flex" justifyContent="space-between">
-              <Box>
-                <Typography variant="h5" mb={2}>
-                  Unlimited <br />
-                  Access
-                </Typography>
-                <Button variant="contained" color="primary">
-                  Upgrade
-                </Button>
-              </Box>
-              <img src={unlimitedImg} alt="unlimited" className="signup-bg"></img>
-            </Box>
-          </Box>
-          <Button variant="outlined" color="primary" fullWidth onClick={handleLogout}>
+          <Button variant="contained" color="primary" fullWidth onClick={handleLogout}>
             Logout
           </Button>
         </Box>

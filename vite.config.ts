@@ -4,7 +4,6 @@ import { resolve } from 'path';
 import fs from 'fs/promises';
 import svgr from '@svgr/rollup';
 
-// https://vitejs.dev/config/
 export default defineConfig({
     resolve: {
         alias: {
@@ -35,11 +34,10 @@ export default defineConfig({
         },
     },
 
-
-    
-    // plugins: [react(),svgr({
-    //   exportAsDefault: true
-    // })],
+    server: {
+        host: 'localhost',
+        port: 5173,
+    },
 
     plugins: [svgr(), react()],
 });

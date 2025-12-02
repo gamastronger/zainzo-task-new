@@ -11,12 +11,10 @@ import { registerType } from 'src/types/auth/auth';
 import AuthSocialButtons from './AuthSocialButtons';
 import { useFormik, FormikProvider } from 'formik';
 import * as Yup from 'yup';
-import useAuth from 'src/guards/authGuard/UseAuth';
 import useMounted from 'src/guards/authGuard/UseMounted';
 
 const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
   const mounted = useMounted();
-  const { signup } = useAuth();
   const navigate = useNavigate();
 
   const registerSchema = Yup.object().shape({
@@ -41,9 +39,10 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
 
     validationSchema: registerSchema,
 
-    onSubmit: async (values, { setErrors, setStatus, setSubmitting }) => {
+    onSubmit: async (_values, { setErrors, setStatus, setSubmitting }) => {
       try {
-        await signup(values.email, values.password);
+        // await signup(values.email, values.password);
+        // For now, just navigate to login
         navigate('/auth/login1');
         if (mounted.current) {
           setStatus({ success: true });

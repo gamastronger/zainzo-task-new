@@ -1,0 +1,7 @@
+# Ignore backend files from frontend ESLint
+backend/
+node_modules/
+dist/
+build/
+*.js
+!vite.config.ts

@@ -258,6 +258,19 @@ export const useKanban = (initial?: BoardData) => {
     });
   }, []);
 
+  const moveColumn = useCallback((fromIndex: number, toIndex: number) => {
+    setBoard((prev) => {
+      const newColumns = [...prev.columns];
+      const [movedColumn] = newColumns.splice(fromIndex, 1);
+      newColumns.splice(toIndex, 0, movedColumn);
+
+      return {
+        ...prev,
+        columns: newColumns,
+      };
+    });
+  }, []);
+
   const exportBoard = useCallback((): string => JSON.stringify(board, null, 2), [board]);
 
   const importBoard = useCallback((payload: string | BoardData) => {
@@ -291,10 +304,11 @@ export const useKanban = (initial?: BoardData) => {
       updateCard,
       removeCard,
       moveCard,
+      moveColumn,
       importBoard,
       exportBoard,
     }),
-    [board, addColumn, removeColumn, addCard, updateCard, removeCard, moveCard, importBoard, exportBoard],
+    [board, addColumn, removeColumn, addCard, updateCard, removeCard, moveCard, moveColumn, importBoard, exportBoard],
   );
 
   return api;

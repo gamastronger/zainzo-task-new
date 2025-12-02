@@ -9,7 +9,11 @@ import { store } from './store/Store';
 import Spinner from './views/spinner/Spinner';
 import './utils/i18n';
 import './_mockApis';
-import { AuthProvider } from 'src/guards/firebase/FirebaseContext';
+import { AuthProvider } from 'src/guards/google/GoogleAuthContext';
+import { validateEnv } from './config/env';
+
+// Validate environment variables on app start
+validateEnv();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <Provider store={store}>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -6,10 +6,8 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Stack,
   TextField,
   Typography,
-  useMediaQuery,
   useTheme,
   Paper,
 } from '@mui/material';
@@ -23,19 +21,19 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
+import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { IconDownload, IconPlus, IconUpload } from '@tabler/icons-react';
 import { useKanban } from './kanban.hooks';
 import { BoardData } from './kanban.types';
 import KanbanColumn from './KanbanColumn';
 
 type KanbanBoardProps = {
   initialData?: BoardData;
+  onRequestAddColumn?: (handler: () => void) => void;
 };
 
-const KanbanBoard = ({ initialData }: KanbanBoardProps) => {
+const KanbanBoard = ({ initialData, onRequestAddColumn }: KanbanBoardProps) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const {
     board,
     addColumn,
@@ -44,15 +42,19 @@ const KanbanBoard = ({ initialData }: KanbanBoardProps) => {
     updateCard,
     removeCard,
     moveCard,
-    importBoard,
-    exportBoard,
+    moveColumn,
   } = useKanban(initialData);
 
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
   const [addColumnOpen, setAddColumnOpen] = useState(false);
   const [newColumnTitle, setNewColumnTitle] = useState('');
-  const [importOpen, setImportOpen] = useState(false);
-  const [importValue, setImportValue] = useState('');
+
+  // Expose add column handler to parent via callback
+  useEffect(() => {
+    if (onRequestAddColumn) {
+      onRequestAddColumn(() => setAddColumnOpen(true));
+    }
+  }, [onRequestAddColumn]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -73,7 +75,7 @@ const KanbanBoard = ({ initialData }: KanbanBoardProps) => {
   }, [activeCardId, board.cards]);
 
   const handleDragStart = (event: DragStartEvent) => {
-    const data = event.active.data.current as { type: string; cardId?: string } | undefined;
+    const data = event.active.data.current as { type: string; cardId?: string; columnId?: string } | undefined;
     if (data?.type === 'card' && data.cardId) {
       setActiveCardId(data.cardId);
     }
@@ -87,9 +89,21 @@ const KanbanBoard = ({ initialData }: KanbanBoardProps) => {
       return;
     }
 
-    const activeData = active.data.current as { type: string; columnId: string; cardId: string } | undefined;
+    const activeData = active.data.current as { type: string; columnId?: string; cardId?: string } | undefined;
     const overData = over.data?.current as { type?: string; columnId?: string } | undefined;
 
+    // Handle column reordering
+    if (activeData?.type === 'column' && overData?.type === 'column') {
+      const activeColumnIndex = board.columns.findIndex((col) => col.id === activeData.columnId);
+      const overColumnIndex = board.columns.findIndex((col) => col.id === overData.columnId);
+
+      if (activeColumnIndex !== -1 && overColumnIndex !== -1 && activeColumnIndex !== overColumnIndex) {
+        moveColumn(activeColumnIndex, overColumnIndex);
+      }
+      return;
+    }
+
+    // Handle card moving
     if (!activeData || activeData.type !== 'card') {
       return;
     }
@@ -126,12 +140,14 @@ const KanbanBoard = ({ initialData }: KanbanBoardProps) => {
       return;
     }
 
-    moveCard({
-      cardId: active.id as string,
-      fromColumnId: sourceColumnId,
-      toColumnId: destinationColumnId,
-      toIndex: destinationIndex,
-    });
+    if (sourceColumnId && destinationColumnId) {
+      moveCard({
+        cardId: active.id as string,
+        fromColumnId: sourceColumnId,
+        toColumnId: destinationColumnId,
+        toIndex: destinationIndex,
+      });
+    }
   };
 
   const handleAddColumn = () => {
@@ -143,152 +159,65 @@ const KanbanBoard = ({ initialData }: KanbanBoardProps) => {
     setAddColumnOpen(false);
   };
 
-  const handleExport = () => {
-    const data = exportBoard();
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = `kanban-board-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
-    URL.revokeObjectURL(url);
-  };
-
-  const handleImport = () => {
-    if (!importValue.trim()) {
-      return;
-    }
-    const success = importBoard(importValue);
-    if (success) {
-      setImportValue('');
-      setImportOpen(false);
-    }
-  };
-
   return (
     <Box sx={{ 
-      height: '100%', 
-      display: 'flex', 
-      flexDirection: 'column', 
-      gap: 3,
-      maxWidth: '100%',
-      overflow: 'hidden',
+      height: '100%',
+      width: '100%',
+      bgcolor: '#FAFAFA',
+      overflowX: 'auto',
+      overflowY: 'auto',
+      '&::-webkit-scrollbar': {
+        height: 8,
+        width: 8,
+      },
+      '&::-webkit-scrollbar-track': {
+        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+      },
+      '&::-webkit-scrollbar-thumb': {
+        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
+        borderRadius: 4,
+        '&:hover': {
+          backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
+        },
+      },
+      '&::-webkit-scrollbar-corner': {
+        backgroundColor: 'transparent',
+      },
     }}>
-      <Stack 
-        direction={{ xs: 'column', sm: 'row' }} 
-        justifyContent="space-between" 
-        alignItems={{ xs: 'stretch', sm: 'center' }}
-        spacing={2}
-        sx={{
-          pb: 2,
-          borderBottom: `1px solid ${theme.palette.divider}`,
-          flexShrink: 0,
-        }}
-      >
-        <Typography 
-          variant="h4" 
-          fontWeight={700} 
-          color="text.primary"
-          sx={{ 
-            fontSize: { xs: '1.5rem', sm: '2rem' },
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}
-        >
-          Improving Work Processes
-        </Typography>
-        <Stack 
-          direction="row" 
-          spacing={1} 
-          flexWrap={{ xs: 'wrap', sm: 'nowrap' }}
-          sx={{ gap: 1 }}
-        >
-          <Button
-            variant="contained"
-            startIcon={<IconPlus size={18} />}
-            onClick={() => setAddColumnOpen(true)}
-            size="medium"
-            sx={{ minWidth: 'auto', whiteSpace: 'nowrap' }}
-          >
-            {isMobile ? 'Add' : 'Add List'}
-          </Button>
-          <Button 
-            variant="outlined" 
-            startIcon={<IconUpload size={18} />} 
-            onClick={() => setImportOpen(true)}
-            size="medium"
-            sx={{ minWidth: 'auto', whiteSpace: 'nowrap' }}
-          >
-            Import
-          </Button>
-          <Button 
-            variant="outlined" 
-            startIcon={<IconDownload size={18} />} 
-            onClick={handleExport}
-            size="medium"
-            sx={{ minWidth: 'auto', whiteSpace: 'nowrap' }}
-          >
-            Export
-          </Button>
-        </Stack>
-      </Stack>
-
-      <Box sx={{ 
-        flex: 1, 
-        overflow: 'hidden',
-        borderRadius: 2,
-        bgcolor: theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.02)',
-        p: 2,
-        minHeight: 0,
-        width: '100%',
-      }}>
-        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <SortableContext items={board.columns.map((col) => col.id)} strategy={horizontalListSortingStrategy}>
           <Box sx={{
             display: 'flex',
             gap: 2,
-            overflowX: 'auto',
-            overflowY: 'hidden',
-            height: '100%',
-            pb: 2,
-            maxWidth: '100%',
-            '&::-webkit-scrollbar': {
-              height: 10,
-            },
-            '&::-webkit-scrollbar-track': {
-              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-              borderRadius: 5,
-              margin: '0 8px',
-            },
-            '&::-webkit-scrollbar-thumb': {
-              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
-              borderRadius: 5,
-              '&:hover': {
-                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
-              },
-            },
+            p: 2,
+            minWidth: 'min-content',
+            minHeight: 'min-content',
+            alignItems: 'flex-start',
           }}>
-          {board.columns.map((column) => {
-            const columnCards = column.cardIds
-              .map((id) => board.cards[id])
-              .filter((card): card is NonNullable<typeof card> => Boolean(card));
+            {board.columns.map((column) => {
+              const allColumnCards = column.cardIds
+                .map((id) => board.cards[id])
+                .filter((card): card is NonNullable<typeof card> => Boolean(card));
+              
+              const activeCards = allColumnCards.filter((card) => !card.completed);
+              const completedCards = allColumnCards.filter((card) => card.completed);
 
-            return (
-              <KanbanColumn
-                key={column.id}
-                column={column}
-                cards={columnCards}
-                onAddCard={addCard}
-                onUpdateCard={updateCard}
-                onRemoveCard={removeCard}
-                onRemoveColumn={removeColumn}
-              />
-            );
-          })}
+              return (
+                <KanbanColumn
+                  key={column.id}
+                  column={column}
+                  cards={activeCards}
+                  completedCards={completedCards}
+                  onAddCard={addCard}
+                  onUpdateCard={updateCard}
+                  onRemoveCard={removeCard}
+                  onRemoveColumn={removeColumn}
+                />
+              );
+            })}
           </Box>
-          <DragOverlay>
+        </SortableContext>
+        <DragOverlay>
             {activeCard ? (
               <Paper
                 sx={{
@@ -309,9 +238,8 @@ const KanbanBoard = ({ initialData }: KanbanBoardProps) => {
                 )}
               </Paper>
             ) : null}
-          </DragOverlay>
-        </DndContext>
-      </Box>
+        </DragOverlay>
+      </DndContext>
 
       <Dialog open={addColumnOpen} onClose={() => setAddColumnOpen(false)} maxWidth="xs" fullWidth>
         <DialogTitle>Add Column</DialogTitle>
@@ -329,27 +257,6 @@ const KanbanBoard = ({ initialData }: KanbanBoardProps) => {
           <Button onClick={() => setAddColumnOpen(false)}>Cancel</Button>
           <Button variant="contained" onClick={handleAddColumn} disabled={!newColumnTitle.trim()}>
             Add
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={importOpen} onClose={() => setImportOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Import Board</DialogTitle>
-        <DialogContent>
-          <TextField
-            multiline
-            minRows={10}
-            fullWidth
-            value={importValue}
-            onChange={(event) => setImportValue(event.target.value)}
-            placeholder="Paste board JSON here"
-            sx={{ mt: 1 }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setImportOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleImport} disabled={!importValue.trim()}>
-            Import
           </Button>
         </DialogActions>
       </Dialog>

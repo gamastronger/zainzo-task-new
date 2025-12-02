@@ -3,17 +3,8 @@ import { useSelector } from 'src/store/Store';
 import { Link } from 'react-router-dom';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import { ReactComponent as LogoDark } from 'src/assets/images/logos/dark-logo.svg';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import { ReactComponent as LogoDarkRTL } from 'src/assets/images/logos/dark-rtl-logo.svg';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import { ReactComponent as LogoLight } from 'src/assets/images/logos/light-logo.svg';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import { ReactComponent as LogoLightRTL } from 'src/assets/images/logos/light-logo-rtl.svg';
-import { styled } from '@mui/material';
+import { ReactComponent as ZainzoLogo } from 'src/assets/images/svgs/zainzocontact.svg';
+import { styled, Typography } from '@mui/material';
 import { AppState } from 'src/store/Store';
 
 const Logo: FC = () => {
@@ -22,33 +13,26 @@ const Logo: FC = () => {
     height: customizer.TopbarHeight,
     width: customizer.isCollapse ? '40px' : '180px',
     overflow: 'hidden',
-    display: 'block',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
   }));
 
-  if (customizer.activeDir === 'ltr') {
-    return (
-      <LinkStyled to="/" style={{
-        display: 'flex',
-        alignItems: 'center',
-      }}>
-        {customizer.activeMode === 'dark' ? (
-          <LogoLight  />
-        ) : (
-          <LogoDark  />
-        )}
-      </LinkStyled>
-    );
-  }
-
   return (
-    <LinkStyled to="/" style={{
-      display: 'flex',
-      alignItems: 'center',
-    }}>
-      {customizer.activeMode === 'dark' ? (
-        <LogoDarkRTL  />
-      ) : (
-        <LogoLightRTL  />
+    <LinkStyled to="/">
+      <ZainzoLogo style={{ width: '28px', height: '28px' }} />
+      {!customizer.isCollapse && (
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: 600,
+            fontSize: '18px',
+            color: '#1a1a1a',
+            letterSpacing: '-0.5px',
+          }}
+        >
+          Zainzo Task
+        </Typography>
       )}
     </LinkStyled>
   );

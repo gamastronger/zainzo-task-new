@@ -21,7 +21,7 @@ const NavListing = () => {
     <Box>
       <List sx={{ p: 0, display: 'flex', gap: '3px', zIndex: '100' }}>
         {Menudata.map((item) => {
-          if (item.children) {
+          if ('children' in item && item.children) {
             return (
               <NavCollapse
                 menu={item}

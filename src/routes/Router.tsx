@@ -13,6 +13,8 @@ import GuestGuard from 'src/guards/authGuard/GuestGaurd';
 /* ****Pages***** */
 const SamplePage = Loadable(lazy(() => import('../views/sample-page/SamplePage')));
 const KanbanPage = Loadable(lazy(() => import('../views/apps/kanban')));
+const ZainzoBook = Loadable(lazy(() => import('../views/zainzo-products/ZainzoBook')));
+const ZainzoContact = Loadable(lazy(() => import('../views/zainzo-products/ZainzoContact')));
 const Error = Loadable(lazy(() => import('../views/authentication/Error')));
 
 // authentication
@@ -20,6 +22,7 @@ const Login = Loadable(lazy(() => import('../views/authentication/auth1/Login'))
 const Login2 = Loadable(lazy(() => import('../views/authentication/auth2/Login2')));
 const Register = Loadable(lazy(() => import('../views/authentication/auth1/Register')));
 const Register2 = Loadable(lazy(() => import('../views/authentication/auth2/Register2')));
+const AuthCallback = Loadable(lazy(() => import('../views/authentication/AuthCallback')));
 
 const Router = [
   {
@@ -33,6 +36,8 @@ const Router = [
       { path: '/', element: <Navigate to="/apps/kanban" /> },
       { path: '/sample-page', exact: true, element: <SamplePage /> },
       { path: '/apps/kanban', exact: true, element: <KanbanPage /> },
+      { path: '/zainzo-book', exact: true, element: <ZainzoBook /> },
+      { path: '/zainzo-contact', exact: true, element: <ZainzoContact /> },
       { path: '*', element: <Navigate to="/auth/404" /> },
     ],
   },
@@ -44,10 +49,11 @@ const Router = [
       </GuestGuard>
     ),
     children: [
-      { path: '/auth/login', element: <Login /> },
-      { path: '/auth/login2', element: <Login2 /> },
-      { path: '/auth/register', element: <Register /> },
-      { path: '/auth/register2', element: <Register2 /> },
+      { path: 'login', element: <Login /> },
+      { path: 'login2', element: <Login2 /> },
+      { path: 'register', element: <Register /> },
+      { path: 'register2', element: <Register2 /> },
+      { path: 'callback', element: <AuthCallback /> },
     ],
   },
   {

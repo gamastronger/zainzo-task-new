@@ -18,11 +18,9 @@ import { toggleMobileSidebar } from 'src/store/customizer/CustomizerSlice';
 // @ts-ignore
 import { IconMenu2 } from '@tabler/icons-react';
 import Notifications from 'src/layouts/full/vertical/header/Notification';
-import Cart from 'src/layouts/full/vertical/header/Cart';
 import Profile from 'src/layouts/full/vertical/header/Profile';
-import Search from 'src/layouts/full/vertical/header/Search';
-import Language from 'src/layouts/full/vertical/header/Language';
 import Logo from 'src/layouts/full/shared/logo/Logo';
+import GridMenu from 'src/layouts/full/shared/GridMenu';
 import { AppState } from 'src/store/Store';
 
 const Header = () => {
@@ -67,21 +65,10 @@ const Header = () => {
         ) : (
           ''
         )}
-        {/* ------------------------------------------- */}
-        {/* Search Dropdown */}
-        {/* ------------------------------------------- */}
-        <Search />
         <Box flexGrow={1} />
         <Stack spacing={1} direction="row" alignItems="center">
-          <Language />
-          {/* ------------------------------------------- */}
-          {/* Ecommerce Dropdown */}
-          {/* ------------------------------------------- */}
-          <Cart />
-          {/* ------------------------------------------- */}
-          {/* End Ecommerce Dropdown */}
-          {/* ------------------------------------------- */}
           <Notifications />
+          <GridMenu />
           <Profile />
         </Stack>
       </ToolbarStyled>

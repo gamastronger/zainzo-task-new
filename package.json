@@ -26,7 +26,6 @@
     "@tabler/icons-react": "^2.38.0",
     "axios": "0.27.2",
     "axios-mock-adapter": "1.21.1",
-    "firebase": "^9.5.0",
     "formik": "2.2.9",
     "i18next": "22.0.6",
     "lodash": "4.17.21",

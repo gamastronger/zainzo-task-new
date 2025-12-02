@@ -1,0 +1,74 @@
+{
+  "columns": [
+    {
+      "id": "todo",
+      "title": "Todo",
+      "color": "#E8EAF6",
+      "cardIds": ["card-1", "card-2"]
+    },
+    {
+      "id": "in-progress",
+      "title": "In Progress",
+      "color": "#E3F2FD",
+      "cardIds": ["card-3", "card-4"]
+    },
+    {
+      "id": "pending",
+      "title": "Pending",
+      "color": "#EDE7F6",
+      "cardIds": ["card-5"]
+    },
+    {
+      "id": "done",
+      "title": "Done",
+      "color": "#E0F2F1",
+      "cardIds": ["card-6"]
+    }
+  ],
+  "cards": {
+    "card-1": {
+      "id": "card-1",
+      "title": "Revisi pitcdeck",
+      "description": "Memperbaiki slide presentasi untuk meeting dengan klien",
+      "dueDate": "2025-11-24",
+      "labels": ["Design"]
+    },
+    "card-2": {
+      "id": "card-2",
+      "title": "Cari baju kayak gini",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, o eiusmod tempor incididunt",
+      "image": "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?auto=format&fit=crop&w=800&q=60",
+      "dueDate": "2025-11-24",
+      "labels": ["Design"]
+    },
+    "card-3": {
+      "id": "card-3",
+      "title": "Besok hubungi klien dari jauh Malang jam 7 Pagi",
+      "description": "Follow up dengan klien mengenai project timeline dan deliverables",
+      "dueDate": "2025-11-24",
+      "labels": ["Design"]
+    },
+    "card-4": {
+      "id": "card-4",
+      "title": "Battle with fire",
+      "description": "Menyelesaikan masalah teknis yang urgent",
+      "image": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800&q=60",
+      "dueDate": "2025-11-24",
+      "labels": ["Design"]
+    },
+    "card-5": {
+      "id": "card-5",
+      "title": "Lets do some task on pd",
+      "description": "Mengerjakan task penting untuk product development",
+      "dueDate": "2025-11-24",
+      "labels": ["Development"]
+    },
+    "card-6": {
+      "id": "card-6",
+      "title": "Do some projects on React Native with Flutter",
+      "description": "Membandingkan dan mengimplementasikan fitur di React Native dan Flutter",
+      "dueDate": "2025-11-24",
+      "labels": ["Mobile"]
+    }
+  }
+}
