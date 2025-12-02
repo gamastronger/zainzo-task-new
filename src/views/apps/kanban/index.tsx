@@ -15,7 +15,7 @@ const KanbanPage = () => {
     <PageContainer title="Kanban" description="Manage work with the Kanban board">
       <Box sx={{ 
         position: 'fixed',
-        top: '64px',
+        top: { xs: '56px', sm: '64px' },
         left: 0,
         right: 0,
         bottom: 0,

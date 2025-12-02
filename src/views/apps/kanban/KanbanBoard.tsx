@@ -188,8 +188,8 @@ const KanbanBoard = ({ initialData, onRequestAddColumn }: KanbanBoardProps) => {
         <SortableContext items={board.columns.map((col) => col.id)} strategy={horizontalListSortingStrategy}>
           <Box sx={{
             display: 'flex',
-            gap: 2,
-            p: 2,
+            gap: { xs: 1.5, sm: 2 },
+            p: { xs: 1.5, sm: 2 },
             minWidth: 'min-content',
             minHeight: 'min-content',
             alignItems: 'flex-start',

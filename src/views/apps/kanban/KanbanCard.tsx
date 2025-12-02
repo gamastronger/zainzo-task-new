@@ -54,6 +54,7 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
   const [form, setForm] = useState(() => ({
     title: card.title,
     description: card.description ?? '',
@@ -67,16 +68,27 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
     const isChecked = event.target.checked;
     
     if (isChecked) {
-      // Trigger celebration animation
-      setCelebrating(true);
+      // Start checking animation
+      setIsChecking(true);
       
-      // Update card as completed after animation
+      // Trigger celebration animation after check animation
+      setTimeout(() => {
+        setCelebrating(true);
+        setIsChecking(false);
+      }, 200);
+      
+      // Update card as completed after celebration
       setTimeout(() => {
         onUpdate(card.id, { completed: true });
         setCelebrating(false);
-      }, 800);
+      }, 1000);
     } else {
-      onUpdate(card.id, { completed: false });
+      // Smooth unchecking
+      setIsChecking(true);
+      setTimeout(() => {
+        onUpdate(card.id, { completed: false });
+        setIsChecking(false);
+      }, 200);
     }
   };
 
@@ -112,17 +124,18 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
         {...attributes}
         {...listeners}
         sx={{
-          p: 2,
-          borderRadius: 2,
+          p: { xs: 1.5, sm: 2 },
+          borderRadius: { xs: 1.5, sm: 2 },
           backgroundColor: 'white',
           border: 'none',
           boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.08)',
-          transition: 'all 0.2s ease',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           position: 'relative',
           opacity: card.completed ? 0.7 : 1,
+          transform: isChecking ? 'scale(0.98)' : 'scale(1)',
           '&:hover': {
             boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.12)',
-            transform: 'translateY(-2px)',
+            transform: isChecking ? 'scale(0.98) translateY(-2px)' : 'translateY(-2px)',
           },
         }}
       >
@@ -279,10 +292,10 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
             alt={card.title}
             sx={{
               width: '100%',
-              height: 140,
-              borderRadius: 1.5,
+              height: { xs: 120, sm: 140 },
+              borderRadius: { xs: 1, sm: 1.5 },
               objectFit: 'cover',
-              mb: 1.5,
+              mb: { xs: 1, sm: 1.5 },
             }}
           />
         )}
@@ -299,7 +312,9 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
                   height: 20,
                   borderRadius: '50%',
                   border: '2px solid',
-                  borderColor: 'grey.400',
+                  borderColor: isChecking ? '#4CAF50' : 'grey.400',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  transform: isChecking ? 'scale(0.9)' : 'scale(1)',
                 }}
               />
             }
@@ -314,6 +329,14 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: 'white',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  transform: isChecking ? 'scale(1.1)' : 'scale(1)',
+                  animation: !isChecking && card.completed ? 'checkBounce 0.4s ease-out' : 'none',
+                  '@keyframes checkBounce': {
+                    '0%': { transform: 'scale(0)' },
+                    '50%': { transform: 'scale(1.2)' },
+                    '100%': { transform: 'scale(1)' },
+                  },
                 }}
               >
                 ✓
@@ -322,6 +345,10 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
             sx={{
               p: 0,
               mt: 0.2,
+              transition: 'transform 0.2s ease',
+              '&:hover': {
+                transform: 'scale(1.1)',
+              },
             }}
           />
           <Box sx={{ flex: 1 }}>
@@ -334,6 +361,8 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
                   lineHeight: 1.4,
                   textDecoration: card.completed ? 'line-through' : 'none',
                   color: card.completed ? 'text.secondary' : 'text.primary',
+                  transition: 'all 0.3s ease',
+                  opacity: isChecking ? 0.6 : 1,
                 }}
               >
                 {card.title}

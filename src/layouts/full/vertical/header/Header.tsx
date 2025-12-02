@@ -31,6 +31,9 @@ const Header = () => {
     [theme.breakpoints.up('lg')]: {
       minHeight: customizer.TopbarHeight,
     },
+    [theme.breakpoints.down('sm')]: {
+      minHeight: '56px',
+    },
   }));
   const ToolbarStyled = styled(Toolbar)(({ theme }) => ({
     width: '100%',
@@ -38,25 +41,38 @@ const Header = () => {
     color: theme.palette.text.secondary,
     paddingLeft: theme.spacing(2),
     paddingRight: theme.spacing(2),
+    minHeight: '56px !important',
+    [theme.breakpoints.down('sm')]: {
+      paddingLeft: theme.spacing(1.5),
+      paddingRight: theme.spacing(1.5),
+    },
   }));
 
   return (
     <AppBarStyled position="sticky" color="default">
       <ToolbarStyled>
         {/* Logo and Title */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
           <Box
             sx={{
-              width: 32,
-              height: 32,
+              width: { xs: 28, sm: 32 },
+              height: { xs: 28, sm: 32 },
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <ZainzoLogo style={{ width: '28px', height: '28px' }} />
+            <ZainzoLogo style={{ width: '100%', height: '100%' }} />
           </Box>
-          <Typography variant="h6" fontWeight={600} color="text.primary" sx={{ fontSize: '18px' }}>
+          <Typography 
+            variant="h6" 
+            fontWeight={600} 
+            color="text.primary" 
+            sx={{ 
+              fontSize: { xs: '16px', sm: '18px' },
+              display: { xs: 'none', sm: 'block' }
+            }}
+          >
             Zainzo Task
           </Typography>
         </Box>
@@ -69,25 +85,50 @@ const Header = () => {
           startIcon={<IconPlus size={18} />}
           onClick={handleAddList}
           sx={{ 
-            mr: 2,
+            mr: { xs: 1, sm: 2 },
             color: 'text.primary',
             textTransform: 'none',
-            fontSize: '14px',
+            fontSize: { xs: '13px', sm: '14px' },
+            minWidth: 'auto',
+            px: { xs: 1, sm: 2 },
+            '& .MuiButton-startIcon': {
+              mr: { xs: 0.5, sm: 1 },
+            },
           }}
         >
-          Tambah List
+          <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+            Tambah List
+          </Box>
+          <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+            Tambah
+          </Box>
         </Button>
 
-        <Stack spacing={1.5} direction="row" alignItems="center">
-          <IconButton color="inherit" size="medium">
-            <Box sx={{ width: 20, height: 20 }}>
+        <Stack spacing={{ xs: 0.5, sm: 1.5 }} direction="row" alignItems="center">
+          <IconButton 
+            color="inherit" 
+            size="medium"
+            sx={{
+              width: { xs: 36, sm: 40 },
+              height: { xs: 36, sm: 40 },
+            }}
+          >
+            <Box sx={{ width: { xs: 18, sm: 20 }, height: { xs: 18, sm: 20 } }}>
               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M22 12C22 17.52 17.52 22 12 22C6.48 22 3.11 16.44 3.11 16.44M3.11 16.44H7.63M3.11 16.44V21.44M2 12C2 6.48 6.44 2 12 2C18.67 2 22 7.56 22 7.56M22 7.56V2.56M22 7.56H17.56" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </Box>
           </IconButton>
           <Notifications />
-          <IconButton color="inherit" size="medium">
+          <IconButton 
+            color="inherit" 
+            size="medium"
+            sx={{
+              width: { xs: 36, sm: 40 },
+              height: { xs: 36, sm: 40 },
+              display: { xs: 'none', sm: 'flex' },
+            }}
+          >
             <Box sx={{ display: 'flex', gap: 0.4, flexDirection: 'column' }}>
               <Box sx={{ display: 'flex', gap: 0.4 }}>
                 <Box sx={{ width: 3, height: 3, bgcolor: 'text.secondary', borderRadius: '50%' }} />

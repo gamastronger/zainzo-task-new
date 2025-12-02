@@ -104,11 +104,11 @@ const KanbanColumn = ({ column, cards, completedCards = [], onAddCard, onUpdateC
       ref={setNodeRef}
       style={style}
       sx={{
-        minWidth: { xs: 280, sm: 320 },
-        width: { xs: 280, sm: 320 },
+        minWidth: { xs: 260, sm: 300, md: 320 },
+        width: { xs: 260, sm: 300, md: 320 },
         backgroundColor: getColumnColor(),
-        borderRadius: 3,
-        p: 2,
+        borderRadius: { xs: 2, sm: 3 },
+        p: { xs: 1.5, sm: 2 },
         border: 'none',
         transition: 'all 0.2s ease',
         boxShadow: isDragging ? '0px 8px 24px rgba(0, 0, 0, 0.15)' : 'none',
@@ -119,7 +119,7 @@ const KanbanColumn = ({ column, cards, completedCards = [], onAddCard, onUpdateC
         flexDirection: 'column',
       }}
     >
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: { xs: 1.5, sm: 2 } }}>
         <Box
           {...attributes}
           {...listeners}
@@ -130,7 +130,7 @@ const KanbanColumn = ({ column, cards, completedCards = [], onAddCard, onUpdateC
             flex: 1,
           }}
         >
-          <Typography variant="h6" fontWeight={600} color="text.primary" sx={{ fontSize: '16px' }}>
+          <Typography variant="h6" fontWeight={600} color="text.primary" sx={{ fontSize: { xs: '14px', sm: '16px' } }}>
             {column.title}
           </Typography>
         </Box>
