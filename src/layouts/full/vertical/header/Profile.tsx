@@ -3,20 +3,16 @@
 import React, { useState } from 'react';
 import { Box, Menu, Avatar, Typography, Divider, Button, IconButton } from '@mui/material';
 import * as dropdownData from './data';
-import { useNavigate } from 'react-router-dom';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { IconMail } from '@tabler/icons-react';
 import { Stack } from '@mui/system';
 
-import useMounted from 'src/guards/authGuard/UseMounted';
 import useAuth from 'src/guards/authGuard/UseAuth';
 
 const Profile = () => {
   const [anchorEl2, setAnchorEl2] = useState<null | HTMLElement>(null);
-  const mounted = useMounted();
   const { logout, user } = useAuth();
-  const navigate = useNavigate();
 
   // Extract user data
   const userName = user?.name || user?.email?.split('@')[0] || 'User';
@@ -33,13 +29,19 @@ const Profile = () => {
 
   const handleLogout = async () => {
     try {
+      handleClose2();
       await logout();
-      navigate('/');
-      if (mounted.current) {
-        handleClose2();
-      }
+      // Clear all auth data
+      localStorage.removeItem('userId');
+      localStorage.removeItem('authToken');
+      // Redirect to login
+      window.location.href = '/auth/login';
     } catch (error) {
-      console.error(error);
+      console.error('Logout error:', error);
+      // Force clear and redirect even on error
+      localStorage.removeItem('userId');
+      localStorage.removeItem('authToken');
+      window.location.href = '/auth/login';
     }
   };
 
