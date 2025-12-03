@@ -5,8 +5,8 @@ export const ENV = {
   // API Configuration
   // API_URL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api', // Base URL without /api
   // API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api', // API endpoints
-  API_URL: import.meta.env.VITE_API_URL || 'https://api.zainzo.com/api', // Base URL without /api
-  API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://api.zainzo.com/api', // API endpoints
+  API_URL: import.meta.env.VITE_API_URL || 'https://api.task.zainzo.com/api', // Base URL without /api
+  API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://api.task.zainzo.com/api', // API endpoints
   
   // Frontend Configuration
   // APP_URL: import.meta.env.VITE_APP_URL || 'https://localhost:5173',
