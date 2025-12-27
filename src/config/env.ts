@@ -1,22 +1,20 @@
 // Environment Configuration
 // Centralized environment variables untuk seluruh aplikasi
+// IMPORTANT: Pastikan .env file sudah diisi dengan benar!
 
 export const ENV = {
   // API Configuration
-  // API_URL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api', // Base URL without /api
-  // API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api', // API endpoints
-  API_URL: import.meta.env.VITE_API_URL || 'https://api.task.zainzo.com/api', // Base URL without /api
-  API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://api.task.zainzo.com/api', // API endpoints
+  // Backend base URL - diambil dari .env (WAJIB diisi di .env)
+  API_URL: import.meta.env.VITE_API_URL || '',
+  API_BASE_URL: import.meta.env.VITE_API_BASE_URL || '',
   
   // Frontend Configuration
-  // APP_URL: import.meta.env.VITE_APP_URL || 'https://localhost:5173',
-  APP_URL: import.meta.env.VITE_APP_URL || 'https://task.zainzo.com',
+  APP_URL: import.meta.env.VITE_APP_URL || '',
   APP_PORT: import.meta.env.VITE_APP_PORT || 5173,
   
   // Google OAuth Configuration
   GOOGLE_CLIENT_ID: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
-  // GOOGLE_REDIRECT_URI: import.meta.env.VITE_GOOGLE_REDIRECT_URI || 'http://localhost:5173/callback',
-  GOOGLE_REDIRECT_URI: import.meta.env.VITE_GOOGLE_REDIRECT_URI || 'https://task.zainzo.com/callback',
+  GOOGLE_REDIRECT_URI: import.meta.env.VITE_GOOGLE_REDIRECT_URI || '',
   
   // Development Mode
   IS_DEV: import.meta.env.DEV,
@@ -30,13 +28,30 @@ export type EnvConfig = typeof ENV;
 export const validateEnv = () => {
   const errors: string[] = [];
   
+  if (!ENV.API_URL) {
+    errors.push('VITE_API_URL is not set in .env file');
+  }
+  
+  if (!ENV.API_BASE_URL) {
+    errors.push('VITE_API_BASE_URL is not set in .env file');
+  }
+  
+  if (!ENV.APP_URL) {
+    errors.push('VITE_APP_URL is not set in .env file');
+  }
+  
   if (!ENV.GOOGLE_CLIENT_ID) {
-    errors.push('VITE_GOOGLE_CLIENT_ID is not set in .env.local');
+    errors.push('VITE_GOOGLE_CLIENT_ID is not set in .env file');
+  }
+  
+  if (!ENV.GOOGLE_REDIRECT_URI) {
+    errors.push('VITE_GOOGLE_REDIRECT_URI is not set in .env file');
   }
   
   if (errors.length > 0) {
-    console.warn('⚠️ Environment Configuration Warnings:');
-    errors.forEach(error => console.warn(`  - ${error}`));
+    console.error('❌ Environment Configuration Errors:');
+    errors.forEach(error => console.error(`  - ${error}`));
+    console.error('💡 Pastikan file .env sudah dibuat dari .env.example dan diisi dengan benar!');
   }
   
   return errors.length === 0;

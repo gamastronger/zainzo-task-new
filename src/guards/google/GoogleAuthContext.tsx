@@ -2,10 +2,8 @@ import { createContext, useEffect, useReducer, ReactNode } from 'react';
 import axios from 'axios';
 import ENV from 'src/config/env';
 
-// Use API_BASE_URL for API routes (/api/*)
-const API_BASE_URL = ENV.API_BASE_URL;
-// Use base URL (without /api) for web routes like OAuth
-const BASE_URL = ENV.API_URL.replace('/api', '');
+// Backend base URL for all routes (both web routes like /auth/google and API routes like /api/auth/me)
+const BACKEND_URL = ENV.API_BASE_URL;
 
 export interface User {
   id: string;
@@ -87,7 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const userId = localStorage.getItem('userId');
         
         if (userId) {
-          const response = await axios.get(`${API_BASE_URL}/auth/user`, {
+          const response = await axios.get(`${BACKEND_URL}/api/auth/user`, {
             params: { userId },
             withCredentials: true,
           });
@@ -125,8 +123,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       // Redirect directly to backend Google OAuth endpoint
       // Backend will handle OAuth and redirect back to frontend with token
-      // Note: /auth/google is a web route, not API route
-      window.location.href = `${BASE_URL}/auth/google`;
+      // Goes to: https://api.task.zainzo.com/auth/google
+      window.location.href = `${BACKEND_URL}/auth/google`;
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -140,7 +138,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       localStorage.setItem('authToken', token);
 
       // Get user data using the token
-      const response = await axios.get(`${API_BASE_URL}/auth/me`, {
+      const response = await axios.get(`${BACKEND_URL}/api/auth/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -175,7 +173,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const userId = localStorage.getItem('userId');
       
-      await axios.post(`${API_BASE_URL}/auth/logout`, { userId }, {
+      await axios.post(`${BACKEND_URL}/api/auth/logout`, { userId }, {
         withCredentials: true,
       });
 
@@ -204,7 +202,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      const response = await axios.get(`${API_BASE_URL}/auth/user`, {
+      const response = await axios.get(`${BACKEND_URL}/api/auth/user`, {
         params: { userId },
         withCredentials: true,
       });

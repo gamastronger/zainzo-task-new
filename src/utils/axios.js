@@ -2,8 +2,9 @@ import axios from 'axios';
 import ENV from '../config/env';
 
 // Base URL untuk Laravel Backend API
+// All API endpoints will be prefixed with /api on the backend
 const axiosServices = axios.create({
-  baseURL: ENV.API_BASE_URL,
+  baseURL: `${ENV.API_BASE_URL}/api`,
   withCredentials: true, // Important untuk cookies/session
   headers: {
     'Content-Type': 'application/json',

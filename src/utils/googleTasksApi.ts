@@ -1,7 +1,7 @@
 import axios from 'axios';
 import ENV from 'src/config/env';
   
-const API_BASE_URL = ENV.API_BASE_URL;
+const API_BASE_URL = `${ENV.API_BASE_URL}/api`;
 
 // Create axios instance with credentials
 const apiClient = axios.create({
