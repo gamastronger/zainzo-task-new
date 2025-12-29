@@ -63,7 +63,7 @@ interface AuthContextType extends InitialStateType {
   loginWithGoogle: () => void;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
-  handleAuthCallback: (token: string) => Promise<boolean>;
+  handleAuthCallback: () => Promise<boolean>; // No token parameter - uses cookies
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -79,33 +79,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   // Check authentication status on mount
+  // Uses Laravel Sanctum cookie-based authentication
   useEffect(() => {
     const initAuth = async () => {
       try {
-        const userId = localStorage.getItem('userId');
-        
-        if (userId) {
-          const response = await axios.get(`${BACKEND_URL}/api/auth/user`, {
-            params: { userId },
-            withCredentials: true,
-          });
+        // Call /api/auth/me to check if user has valid session cookie
+        // Laravel Sanctum automatically validates the session cookie
+        const response = await axios.get(`${BACKEND_URL}/api/auth/me`, {
+          withCredentials: true, // Send cookies with request
+        });
 
-          if (response.data.success) {
-            dispatch({
-              type: 'INIT',
-              payload: {
-                isAuthenticated: true,
-                user: response.data.user,
-              },
-            });
-            return;
-          }
+        // Backend should return { success: true, data: { user: {...} } }
+        if (response.data.success && response.data.data?.user) {
+          dispatch({
+            type: 'INIT',
+            payload: {
+              isAuthenticated: true,
+              user: response.data.data.user,
+            },
+          });
+          return;
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
-        localStorage.removeItem('userId');
+        // If /api/auth/me fails, user is not authenticated
       }
 
+      // Not authenticated
       dispatch({
         type: 'INIT',
         payload: {
@@ -119,35 +119,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   // Login with Google
+  // Redirects to backend OAuth endpoint
+  // Backend handles OAuth flow and redirects back to /auth/success
   const loginWithGoogle = async () => {
     try {
-      // Redirect directly to backend Google OAuth endpoint
-      // Backend will handle OAuth and redirect back to frontend with token
-      // Goes to: https://api.task.zainzo.com/auth/google
-      window.location.href = `${BACKEND_URL}/auth/google`;
+      window.location.href = `${BACKEND_URL}/api/auth/google`;
     } catch (error) {
       console.error('Login error:', error);
       throw error;
     }
   };
 
-  // Handle callback token from backend
-  const handleAuthCallback = async (token: string) => {
+  // Check authentication after backend callback
+  // This is called by the /auth/success page
+  const handleAuthCallback = async (): Promise<boolean> => {
     try {
-      // Save token to localStorage
-      localStorage.setItem('authToken', token);
-
-      // Get user data using the token
+      // Call /api/auth/me to get user data
+      // Session cookie is automatically sent by browser
       const response = await axios.get(`${BACKEND_URL}/api/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
         withCredentials: true,
       });
 
-      if (response.data.success) {
+      if (response.data.success && response.data.data?.user) {
         const user = response.data.data.user;
-        localStorage.setItem('userId', user.id);
 
         dispatch({
           type: 'LOGIN',
@@ -162,8 +156,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return false;
     } catch (error) {
       console.error('Callback handling error:', error);
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('userId');
       return false;
     }
   };
@@ -171,51 +163,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Logout
   const logout = async () => {
     try {
-      const userId = localStorage.getItem('userId');
-      
-      await axios.post(`${BACKEND_URL}/api/auth/logout`, { userId }, {
+      // Call backend logout endpoint to clear session
+      await axios.post(`${BACKEND_URL}/api/auth/logout`, {}, {
         withCredentials: true,
       });
 
-      localStorage.removeItem('userId');
-      
       dispatch({
         type: 'LOGOUT',
         payload: {},
       });
     } catch (error) {
       console.error('Logout error:', error);
+      // Even if logout fails, clear local state
+      dispatch({
+        type: 'LOGOUT',
+        payload: {},
+      });
       throw error;
     }
   };
 
-  // Check auth after callback
+  // Check current authentication status
+  // Calls /api/auth/me to verify session is still valid
   const checkAuth = async () => {
     try {
-      const userId = localStorage.getItem('userId');
-      
-      if (!userId) {
-        dispatch({
-          type: 'LOGOUT',
-          payload: {},
-        });
-        return;
-      }
-
-      const response = await axios.get(`${BACKEND_URL}/api/auth/user`, {
-        params: { userId },
+      const response = await axios.get(`${BACKEND_URL}/api/auth/me`, {
         withCredentials: true,
       });
 
-      if (response.data.success) {
+      if (response.data.success && response.data.data?.user) {
         dispatch({
           type: 'LOGIN',
           payload: {
-            user: response.data.user,
+            user: response.data.data.user,
           },
         });
       } else {
-        localStorage.removeItem('userId');
         dispatch({
           type: 'LOGOUT',
           payload: {},
@@ -223,7 +206,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (error) {
       console.error('Check auth error:', error);
-      localStorage.removeItem('userId');
       dispatch({
         type: 'LOGOUT',
         payload: {},

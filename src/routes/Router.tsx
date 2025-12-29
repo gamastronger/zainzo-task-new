@@ -23,6 +23,8 @@ const Login2 = Loadable(lazy(() => import('../views/authentication/auth2/Login2'
 const Register = Loadable(lazy(() => import('../views/authentication/auth1/Register')));
 const Register2 = Loadable(lazy(() => import('../views/authentication/auth2/Register2')));
 const AuthCallback = Loadable(lazy(() => import('../views/authentication/AuthCallback')));
+const AuthSuccess = Loadable(lazy(() => import('../views/authentication/AuthSuccess')));
+const AuthError = Loadable(lazy(() => import('../views/authentication/AuthError')));
 
 const Router = [
   {
@@ -53,13 +55,15 @@ const Router = [
       { path: 'login2', element: <Login2 /> },
       { path: 'register', element: <Register /> },
       { path: 'register2', element: <Register2 /> },
-      { path: 'callback', element: <AuthCallback /> },
+      { path: 'callback', element: <AuthCallback /> }, // Legacy callback (can be removed if not used)
     ],
   },
   {
     path: '/auth',
-    element: <BlankLayout />,
+    element: <BlankLayout />, // No GuestGuard - these routes handle auth logic
     children: [
+      { path: 'success', element: <AuthSuccess /> }, // Backend redirects here after OAuth
+      { path: 'error', element: <AuthError /> }, // Auth failure page
       { path: '404', element: <Error /> },
       { path: '*', element: <Navigate to="/auth/404" /> },
     ],

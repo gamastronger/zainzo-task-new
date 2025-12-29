@@ -1,7 +1,8 @@
 # Environment Configuration Guide
 
 ## 📁 File Structure
-```
+
+```p
 .env              → File utama (gunakan ini, jangan commit ke git)
 .env.example      → Template/contoh (commit ke git)
 .env.local        → Sama dengan .env (backup/alternatif nama)
@@ -10,6 +11,7 @@
 ## 🚀 Quick Start
 
 ### 1. Setup Environment File
+
 ```bash
 # Copy .env.example ke .env
 cp .env.example .env
@@ -17,8 +19,10 @@ cp .env.example .env
 
 ### 2. Edit File .env
 
-#### Untuk LOCAL Development:
+#### Untuk LOCAL Development
+
 Uncomment bagian LOCAL, comment bagian PRODUCTION:
+
 ```env
 # ============================================
 # LOCAL DEVELOPMENT (Uncomment untuk local)
@@ -38,8 +42,10 @@ VITE_GOOGLE_REDIRECT_URI=http://localhost:5173/auth/callback
 # ... dst
 ```
 
-#### Untuk PRODUCTION Deployment:
+#### Untuk PRODUCTION Deployment
+
 Comment bagian LOCAL, uncomment bagian PRODUCTION:
+
 ```env
 # ============================================
 # LOCAL DEVELOPMENT (Comment untuk production)
@@ -60,6 +66,7 @@ VITE_GOOGLE_REDIRECT_URI=https://task.zainzo.com/auth/callback
 ```
 
 ### 3. Build & Run
+
 ```bash
 # Development
 npm run dev
@@ -71,7 +78,8 @@ npm run build
 ## 🔍 Cara Kerja
 
 ### API URL Structure
-```
+
+```p
 ENV.API_BASE_URL = https://api.task.zainzo.com
 ↓
 Axios instances akan add /api prefix:
@@ -82,7 +90,8 @@ Axios instances akan add /api prefix:
 ```
 
 ### Endpoint Mapping
-| Frontend Call | Actual URL |
+
+| Frontend Call | Actual URL |p
 |--------------|------------|
 | `/cards` | `https://api.task.zainzo.com/api/cards` |
 | `/columns` | `https://api.task.zainzo.com/api/columns` |
@@ -94,7 +103,7 @@ Axios instances akan add /api prefix:
 Aplikasi akan otomatis validasi env variables saat start (`main.tsx`).
 Jika ada yang kosong, akan muncul error di console:
 
-```
+```p
 ❌ Environment Configuration Errors:
   - VITE_API_URL is not set in .env file
   - VITE_GOOGLE_CLIENT_ID is not set in .env file
@@ -112,6 +121,7 @@ Jika ada yang kosong, akan muncul error di console:
 ## 🔐 Security
 
 File yang di-ignore (tidak commit ke git):
+
 - `.env`
 - `.env.local`
 - `.env*.local`
@@ -119,4 +129,5 @@ File yang di-ignore (tidak commit ke git):
 - Credential files
 
 File yang di-commit:
+
 - `.env.example` (template tanpa nilai sensitif)

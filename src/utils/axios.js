@@ -1,45 +1,40 @@
 import axios from 'axios';
 import ENV from '../config/env';
 
-// Base URL untuk Laravel Backend API
-// All API endpoints will be prefixed with /api on the backend
+/**
+ * Axios instance configured for Laravel Sanctum authentication
+ * 
+ * Key configuration:
+ * - withCredentials: true → Sends HTTP-only cookies with every request
+ * - baseURL: Points to /api endpoint on backend
+ * - Headers: Accept JSON responses
+ * 
+ * Laravel Sanctum uses HTTP-only cookies for authentication.
+ * No manual token handling needed in frontend.
+ */
 const axiosServices = axios.create({
   baseURL: `${ENV.API_BASE_URL}/api`,
-  withCredentials: true, // Important untuk cookies/session
+  withCredentials: true, // CRITICAL: Enables cookie-based auth (Laravel Sanctum)
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   }
 });
 
-// Interceptor untuk menambahkan token ke setiap request
-axiosServices.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Interceptor untuk handle response
+// Response interceptor for error handling
 axiosServices.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle unauthorized error
+    // Handle unauthorized error (401)
+    // This means the session cookie is invalid/expired
     if (error.response?.status === 401) {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('userId');
-      // Redirect ke login jika unauthorized
-      if (window.location.pathname !== '/auth/login') {
+      // Redirect to login if not already there
+      if (window.location.pathname !== '/auth/login' && 
+          !window.location.pathname.startsWith('/auth/')) {
         window.location.href = '/auth/login';
       }
     }
-    return Promise.reject((error.response && error.response.data) || 'Wrong Services');
+    return Promise.reject((error.response && error.response.data) || 'Request failed');
   }
 );
 
