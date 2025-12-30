@@ -13,8 +13,8 @@ import { AppState } from 'src/store/Store';
 
 const Header = () => {
   const handleAddList = () => {
-    if (typeof window !== 'undefined' && (window as any).__kanbanAddListHandler) {
-      (window as any).__kanbanAddListHandler();
+    if (typeof window !== 'undefined' && (window as unknown as { __kanbanAddListHandler?: () => void }).__kanbanAddListHandler) {
+      (window as unknown as { __kanbanAddListHandler: () => void }).__kanbanAddListHandler();
     }
   };
 
@@ -79,6 +79,7 @@ const Header = () => {
 
         <Box flexGrow={1} />
         
+
         {/* Add List Button */}
         <Button
           variant="text"
@@ -105,6 +106,7 @@ const Header = () => {
         </Button>
 
         <Stack spacing={{ xs: 0.5, sm: 1.5 }} direction="row" alignItems="center">
+          {/* Refresh Button */}
           <IconButton 
             color="inherit" 
             size="medium"
@@ -112,6 +114,8 @@ const Header = () => {
               width: { xs: 36, sm: 40 },
               height: { xs: 36, sm: 40 },
             }}
+            aria-label="Refresh"
+            onClick={() => window.location.reload()}
           >
             <Box sx={{ width: { xs: 18, sm: 20 }, height: { xs: 18, sm: 20 } }}>
               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -120,33 +124,6 @@ const Header = () => {
             </Box>
           </IconButton>
           <Notifications />
-          <IconButton 
-            color="inherit" 
-            size="medium"
-            sx={{
-              width: { xs: 36, sm: 40 },
-              height: { xs: 36, sm: 40 },
-              display: { xs: 'none', sm: 'flex' },
-            }}
-          >
-            <Box sx={{ display: 'flex', gap: 0.4, flexDirection: 'column' }}>
-              <Box sx={{ display: 'flex', gap: 0.4 }}>
-                <Box sx={{ width: 3, height: 3, bgcolor: 'text.secondary', borderRadius: '50%' }} />
-                <Box sx={{ width: 3, height: 3, bgcolor: 'text.secondary', borderRadius: '50%' }} />
-                <Box sx={{ width: 3, height: 3, bgcolor: 'text.secondary', borderRadius: '50%' }} />
-              </Box>
-              <Box sx={{ display: 'flex', gap: 0.4 }}>
-                <Box sx={{ width: 3, height: 3, bgcolor: 'text.secondary', borderRadius: '50%' }} />
-                <Box sx={{ width: 3, height: 3, bgcolor: 'text.secondary', borderRadius: '50%' }} />
-                <Box sx={{ width: 3, height: 3, bgcolor: 'text.secondary', borderRadius: '50%' }} />
-              </Box>
-              <Box sx={{ display: 'flex', gap: 0.4 }}>
-                <Box sx={{ width: 3, height: 3, bgcolor: 'text.secondary', borderRadius: '50%' }} />
-                <Box sx={{ width: 3, height: 3, bgcolor: 'text.secondary', borderRadius: '50%' }} />
-                <Box sx={{ width: 3, height: 3, bgcolor: 'text.secondary', borderRadius: '50%' }} />
-              </Box>
-            </Box>
-          </IconButton>
           <Profile />
         </Stack>
       </ToolbarStyled>

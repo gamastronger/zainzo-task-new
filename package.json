@@ -27,6 +27,7 @@
     "axios": "0.27.2",
     "axios-mock-adapter": "1.21.1",
     "formik": "2.2.9",
+    "framer-motion": "^12.23.26",
     "i18next": "22.0.6",
     "lodash": "4.17.21",
     "react": "^18.2.0",
