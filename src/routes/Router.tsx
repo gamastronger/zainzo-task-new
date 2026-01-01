@@ -15,6 +15,8 @@ const SamplePage = Loadable(lazy(() => import('../views/sample-page/SamplePage')
 const KanbanPage = Loadable(lazy(() => import('../views/apps/kanban')));
 const ZainzoBook = Loadable(lazy(() => import('../views/zainzo-products/ZainzoBook')));
 const ZainzoContact = Loadable(lazy(() => import('../views/zainzo-products/ZainzoContact')));
+const PrivacyPolicy = Loadable(lazy(() => import('../views/PrivacyPolicy')));
+const LandingPage = Loadable(lazy(() => import('../views/LandingPage')));
 const Error = Loadable(lazy(() => import('../views/authentication/Error')));
 
 // authentication
@@ -29,17 +31,24 @@ const AuthError = Loadable(lazy(() => import('../views/authentication/AuthError'
 const Router = [
   {
     path: '/',
+    element: <BlankLayout />, // Public landing page - no authentication required
+    children: [
+      { path: '/', element: <LandingPage /> },
+    ],
+  },
+  {
+    path: '/apps',
     element: (
       <AuthGuard>
         <FullLayout />
       </AuthGuard>
     ),
     children: [
-      { path: '/', element: <Navigate to="/apps/kanban" /> },
-      { path: '/sample-page', exact: true, element: <SamplePage /> },
-      { path: '/apps/kanban', exact: true, element: <KanbanPage /> },
-      { path: '/zainzo-book', exact: true, element: <ZainzoBook /> },
-      { path: '/zainzo-contact', exact: true, element: <ZainzoContact /> },
+      { path: '/appsapps', element: <Navigate to="/apps/kanban" /> },
+      { path: 'sample-page', exact: true, element: <SamplePage /> },
+      { path: 'kanban', exact: true, element: <KanbanPage /> },
+      { path: 'zainzo-book', exact: true, element: <ZainzoBook /> },
+      { path: 'zainzo-contact', exact: true, element: <ZainzoContact /> },
       { path: '*', element: <Navigate to="/auth/404" /> },
     ],
   },
@@ -66,6 +75,13 @@ const Router = [
       { path: 'error', element: <AuthError /> }, // Auth failure page
       { path: '404', element: <Error /> },
       { path: '*', element: <Navigate to="/auth/404" /> },
+    ],
+  },
+  {
+    path: '/privacy-policy',
+    element: <BlankLayout />, // Public route - no authentication required
+    children: [
+      { path: '', element: <PrivacyPolicy /> },
     ],
   },
 ];
