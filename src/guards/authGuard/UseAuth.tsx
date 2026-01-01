@@ -35,6 +35,7 @@ const useAuth = () => {
 
   const [isInitialized, setIsInitialized] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<{ name?: string; email?: string; picture?: string } | null>(null);
 
   // 🔁 REGISTER GLOBAL LOGOUT (sekali saja)
   useEffect(() => {
@@ -70,12 +71,35 @@ const useAuth = () => {
     tokenClientRef.current?.requestAccessToken();
   }, []);
 
+  const handleAuthCallback = useCallback(async () => {
+    try {
+      // Verify authentication (in a real app, this would call your backend)
+      const token = sessionStorage.getItem(TOKEN_KEY);
+      if (token) {
+        // In a real implementation, decode the token or fetch user info
+        // For now, set a basic user object
+        setUser({
+          email: 'user@example.com',
+          name: 'User'
+        });
+        setIsAuthenticated(true);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Auth callback error:', error);
+      return false;
+    }
+  }, []);
+
   return {
     loginWithGoogle,
     logout: authEvents.logout,
     isAuthenticated,
     isInitialized,
     getToken: () => sessionStorage.getItem(TOKEN_KEY),
+    user,
+    handleAuthCallback,
   };
 };
 
