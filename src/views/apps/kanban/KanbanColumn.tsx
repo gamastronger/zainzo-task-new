@@ -94,10 +94,10 @@ const KanbanColumn = ({ column, cards, completedCards = [], onAddCard, onUpdateC
   // Warna background sesuai kolom dari Figma
   const getColumnColor = () => {
     const title = column.title.toLowerCase();
-    if (title.includes('todo')) return '#E8EAF6';
-    if (title.includes('progress')) return '#E3F2FD';
-    if (title.includes('pending')) return '#EDE7F6';
-    if (title.includes('done')) return '#E0F2F1';
+    if (title.includes('todo')) return '#b1bbf5ff';
+    if (title.includes('progress')) return '#d9f9aaff';
+    if (title.includes('pending')) return '#ceb0faff';
+    if (title.includes('done')) return '#38d2caff';
     return theme.palette.background.paper;
   };
 
