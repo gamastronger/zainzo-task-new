@@ -1,6 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import React from 'react';
 import icon1 from 'src/assets/images/svgs/google-icon.svg';
 import CustomSocialButton from '../../../components/forms/theme-elements/CustomSocialButton';
 import { Avatar, Box, Stack } from '@mui/material';
@@ -13,31 +10,24 @@ const AuthSocialButtons = ({ title }: signInType) => {
   const handleLoginGoogle = async () => {
     try {
       await loginWithGoogle();
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error('Login Google gagal', err);
     }
   };
 
   return (
-    <>
-      <Stack direction="row" justifyContent="center" spacing={2} mt={3}>
-        <CustomSocialButton onClick={handleLoginGoogle} fullWidth>
-          <Avatar
-            src={icon1}
-            alt={icon1}
-            sx={{
-              width: 20,
-              height: 20,
-              borderRadius: 0,
-              mr: 1,
-            }}
-          />
-          <Box sx={{ whiteSpace: 'nowrap' }}>
-            {title || 'Sign in with'} Google
-          </Box>
-        </CustomSocialButton>
-      </Stack>
-    </>
+    <Stack direction="row" justifyContent="center" spacing={2} mt={3}>
+      <CustomSocialButton onClick={handleLoginGoogle} fullWidth>
+        <Avatar
+          src={icon1}
+          sx={{ width: 20, height: 20, borderRadius: 0, mr: 1 }}
+        />
+        <Box sx={{ whiteSpace: 'nowrap' }}>
+          {title || 'Sign in with'} Google
+        </Box>
+      </CustomSocialButton>
+    </Stack>
   );
 };
+
 export default AuthSocialButtons;

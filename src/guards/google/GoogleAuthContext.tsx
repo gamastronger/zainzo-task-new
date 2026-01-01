@@ -1,9 +1,16 @@
-import { createContext, useEffect, useReducer, ReactNode } from 'react';
+import {
+  createContext,
+  useEffect,
+  useReducer,
+  ReactNode,
+  useCallback,
+} from 'react';
 import axios from 'axios';
 import ENV from 'src/config/env';
 
-// Backend base URL for all routes (both web routes like /auth/google and API routes like /api/auth/me)
 const BACKEND_URL = ENV.API_BASE_URL;
+
+/* ================= TYPES ================= */
 
 export interface User {
   id: string;
@@ -18,53 +25,64 @@ export interface InitialStateType {
   user: User | null;
 }
 
+interface AuthAction {
+  type: 'INIT' | 'LOGIN' | 'LOGOUT';
+  payload?: {
+    user?: User | null;
+  };
+}
+
+interface AuthContextType extends InitialStateType {
+  platform: 'GoogleOAuth';
+  loginWithGoogle: () => void;
+  logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
+  handleAuthCallback: () => Promise<boolean>;
+}
+
+/* ================= STATE ================= */
+
 const initialState: InitialStateType = {
   isAuthenticated: false,
   isInitialized: false,
   user: null,
 };
 
-interface AuthAction {
-  type: 'INIT' | 'LOGIN' | 'LOGOUT';
-  payload: {
-    isAuthenticated?: boolean;
-    user?: User | null;
-  };
-}
+/* ================= REDUCER ================= */
 
-const reducer = (state: InitialStateType, action: AuthAction): InitialStateType => {
+const reducer = (
+  state: InitialStateType,
+  action: AuthAction
+): InitialStateType => {
   switch (action.type) {
     case 'INIT':
       return {
         ...state,
         isInitialized: true,
-        isAuthenticated: action.payload.isAuthenticated ?? false,
-        user: action.payload.user ?? null,
+        isAuthenticated: !!action.payload?.user,
+        user: action.payload?.user ?? null,
       };
+
     case 'LOGIN':
       return {
         ...state,
         isAuthenticated: true,
-        user: action.payload.user ?? null,
+        user: action.payload?.user ?? null,
       };
+
     case 'LOGOUT':
       return {
         ...state,
         isAuthenticated: false,
         user: null,
       };
+
     default:
       return state;
   }
 };
 
-interface AuthContextType extends InitialStateType {
-  platform: string;
-  loginWithGoogle: () => void;
-  logout: () => Promise<void>;
-  checkAuth: () => Promise<void>;
-  handleAuthCallback: () => Promise<boolean>; // No token parameter - uses cookies
-}
+/* ================= CONTEXT ================= */
 
 const AuthContext = createContext<AuthContextType>({
   ...initialState,
@@ -75,141 +93,96 @@ const AuthContext = createContext<AuthContextType>({
   handleAuthCallback: async () => false,
 });
 
+/* ================= PROVIDER ================= */
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  // Check authentication status on mount
-  // Uses Laravel Sanctum cookie-based authentication
+  /* ================= LOGOUT HANDLER ================= */
+
+  const logout = useCallback(async () => {
+    try {
+      await axios.post(
+        `${BACKEND_URL}/api/auth/logout`,
+        {},
+        { withCredentials: true }
+      );
+    } catch {
+      // ignore backend error
+    } finally {
+      dispatch({ type: 'LOGOUT' });
+      window.location.href = '/login';
+    }
+  }, []);
+
+
+  /* ================= INIT AUTH ================= */
+
   useEffect(() => {
-    const initAuth = async () => {
+    const init = async () => {
       try {
-        // Call /api/auth/me to check if user has valid session cookie
-        // Laravel Sanctum automatically validates the session cookie
-        const response = await axios.get(`${BACKEND_URL}/api/auth/me`, {
-          withCredentials: true, // Send cookies with request
+        const res = await axios.get(`${BACKEND_URL}/api/auth/me`, {
+          withCredentials: true,
         });
 
-        // Backend should return { success: true, data: { user: {...} } }
-        if (response.data.success && response.data.data?.user) {
+        if (res.data?.success && res.data.data?.user) {
           dispatch({
             type: 'INIT',
-            payload: {
-              isAuthenticated: true,
-              user: response.data.data.user,
-            },
+            payload: { user: res.data.data.user },
           });
           return;
         }
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-        // If /api/auth/me fails, user is not authenticated
+      } catch {
+        // silent
       }
 
-      // Not authenticated
-      dispatch({
-        type: 'INIT',
-        payload: {
-          isAuthenticated: false,
-          user: null,
-        },
-      });
+      dispatch({ type: 'INIT' });
     };
 
-    initAuth();
+    init();
   }, []);
 
-  // Login with Google
-  // Redirects to backend OAuth endpoint
-  // Backend handles OAuth flow and redirects back to /auth/success
-  const loginWithGoogle = async () => {
-    try {
-      window.location.href = `${BACKEND_URL}/api/auth/google`;
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    }
+  /* ================= ACTIONS ================= */
+
+  const loginWithGoogle = () => {
+    window.location.href = `${BACKEND_URL}/api/auth/google`;
   };
 
-  // Check authentication after backend callback
-  // This is called by the /auth/success page
   const handleAuthCallback = async (): Promise<boolean> => {
     try {
-      // Call /api/auth/me to get user data
-      // Session cookie is automatically sent by browser
-      const response = await axios.get(`${BACKEND_URL}/api/auth/me`, {
+      const res = await axios.get(`${BACKEND_URL}/api/auth/me`, {
         withCredentials: true,
       });
 
-      if (response.data.success && response.data.data?.user) {
-        const user = response.data.data.user;
-
+      if (res.data?.success && res.data.data?.user) {
         dispatch({
           type: 'LOGIN',
-          payload: {
-            user: user,
-          },
+          payload: { user: res.data.data.user },
         });
-
         return true;
       }
-
-      return false;
-    } catch (error) {
-      console.error('Callback handling error:', error);
-      return false;
+    } catch {
+      // ignore
     }
+    return false;
   };
 
-  // Logout
-  const logout = async () => {
-    try {
-      // Call backend logout endpoint to clear session
-      await axios.post(`${BACKEND_URL}/api/auth/logout`, {}, {
-        withCredentials: true,
-      });
-
-      dispatch({
-        type: 'LOGOUT',
-        payload: {},
-      });
-    } catch (error) {
-      console.error('Logout error:', error);
-      // Even if logout fails, clear local state
-      dispatch({
-        type: 'LOGOUT',
-        payload: {},
-      });
-      throw error;
-    }
-  };
-
-  // Check current authentication status
-  // Calls /api/auth/me to verify session is still valid
   const checkAuth = async () => {
     try {
-      const response = await axios.get(`${BACKEND_URL}/api/auth/me`, {
+      const res = await axios.get(`${BACKEND_URL}/api/auth/me`, {
         withCredentials: true,
       });
 
-      if (response.data.success && response.data.data?.user) {
+      if (res.data?.success && res.data.data?.user) {
         dispatch({
           type: 'LOGIN',
-          payload: {
-            user: response.data.data.user,
-          },
+          payload: { user: res.data.data.user },
         });
       } else {
-        dispatch({
-          type: 'LOGOUT',
-          payload: {},
-        });
+        await logout();
       }
-    } catch (error) {
-      console.error('Check auth error:', error);
-      dispatch({
-        type: 'LOGOUT',
-        payload: {},
-      });
+    } catch {
+      await logout();
     }
   };
 

@@ -1,15 +1,22 @@
 import { Box } from '@mui/material';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import PageContainer from 'src/components/container/PageContainer';
 import KanbanBoard from './KanbanBoard';
 
 const KanbanPage = () => {
   const [addListHandler, setAddListHandler] = useState<(() => void) | null>(null);
 
-  // This will be called when Header's Add List button is available
-  if (typeof window !== 'undefined') {
-    (window as any).__kanbanAddListHandler = addListHandler;
-  }
+  // Expose handler to window for Header's Add List button
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as unknown as { __kanbanAddListHandler?: (() => void) | null }).__kanbanAddListHandler = addListHandler;
+    }
+  }, [addListHandler]);
+
+  // Memoize callback to prevent infinite loop
+  const handleRequestAddColumn = useCallback((handler: () => void) => {
+    setAddListHandler(() => handler);
+  }, []);
 
   return (
     <PageContainer title="Kanban" description="Manage work with the Kanban board">
@@ -22,7 +29,7 @@ const KanbanPage = () => {
         overflow: 'hidden',
         zIndex: 1,
       }}>
-        <KanbanBoard onRequestAddColumn={(handler) => setAddListHandler(() => handler)} />
+        <KanbanBoard onRequestAddColumn={handleRequestAddColumn} />
       </Box>
     </PageContainer>
   );

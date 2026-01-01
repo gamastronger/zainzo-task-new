@@ -1,315 +1,271 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { BoardData, Card, Column, MoveCardPayload } from './kanban.types';
+import { useEffect, useState } from 'react';
+import {
+  fetchTaskLists,
+  fetchTasks,
+  createTask,
+  createTaskList,
+  deleteTask,
+  deleteTaskList,
+  GoogleTask,
+} from 'src/api/googleTasks';
+import { queueTaskPatch } from 'src/utils/googleTasksQueue';
 
-const STORAGE_KEY = 'modernize-kanban-board';
+/* ================= TYPES ================= */
 
-const createInitialData = (): BoardData => ({
-  columns: [
-    {
-      id: 'todo',
-      title: 'Todo',
-      color: '#E5EDFF',
-      cardIds: ['card-1', 'card-2'],
-    },
-    {
-      id: 'progress',
-      title: 'Progress',
-      color: '#E3F6FF',
-      cardIds: ['card-3'],
-    },
-    {
-      id: 'pending',
-      title: 'Pending',
-      color: '#FFF2DE',
-      cardIds: ['card-4'],
-    },
-    {
-      id: 'done',
-      title: 'Done',
-      color: '#E1F8F2',
-      cardIds: ['card-5'],
-    },
-  ],
-  cards: {
-    'card-1': {
-      id: 'card-1',
-      title: 'This is first task',
-      description: '',
-      image: 'https://images.unsplash.com/photo-1520763185298-1b434c919102?auto=format&fit=crop&w=800&q=60',
-      dueDate: '2025-07-24',
-      labels: ['Design'],
-    },
-    'card-2': {
-      id: 'card-2',
-      title: 'Ideate user research',
-      description: 'Gather notes from last customer interviews and highlight patterns.',
-      dueDate: '2025-07-26',
-      labels: ['Research'],
-    },
-    'card-3': {
-      id: 'card-3',
-      title: 'Design navigation changes',
-      description: 'Update the mobile navigation to match new flows.',
-      dueDate: '2025-07-24',
-      labels: ['Mobile'],
-    },
-    'card-4': {
-      id: 'card-4',
-      title: 'Persona development',
-      description: 'Create updated personas for main user segments based on Q2 data.',
-      dueDate: '2025-07-24',
-      labels: ['UX Stage'],
-    },
-    'card-5': {
-      id: 'card-5',
-      title: 'Usability testing report',
-      description: 'Summarize findings from July usability tests and share with stakeholders.',
-      image: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=60',
-      dueDate: '2025-07-29',
-      labels: ['Testing'],
-    },
-  },
-});
+export interface Card {
+  id: string;
+  title: string;
+  description?: string;
+  completed: boolean;
+  dueDate?: string;
+  labels?: string[];
+  image?: string;
+}
 
-const loadBoard = (initial?: BoardData): BoardData => {
-  if (typeof window === 'undefined') {
-    return initial ?? createInitialData();
+export interface Column {
+  id: string;
+  title: string;
+  cardIds: string[];
+}
+
+export interface BoardData {
+  columns: Column[];
+  cards: Record<string, Card>;
+}
+
+/* ================= HELPERS ================= */
+
+function parseTaskNotes(notes?: string): { description?: string; labels?: string[]; image?: string } {
+  if (!notes) return {};
+
+  const metadataMarker = '\n---METADATA---\n';
+  const parts = notes.split(metadataMarker);
+
+  if (parts.length === 1) {
+    return { description: notes };
   }
 
-  const stored = window.localStorage.getItem(STORAGE_KEY);
-  if (stored) {
-    try {
-      const parsed = JSON.parse(stored) as BoardData;
-      if (parsed?.columns && parsed?.cards) {
-        return parsed;
-      }
-    } catch (error) {
-      console.warn('Failed to parse stored Kanban board', error);
-    }
+  const description = parts[0] || undefined;
+  try {
+    const metadata = JSON.parse(parts[1]);
+    return {
+      description,
+      labels: metadata.labels,
+      image: metadata.image,
+    };
+  } catch {
+    return { description: notes };
   }
+}
 
-  return initial ?? createInitialData();
-};
+/* ================= HOOK ================= */
 
-const sanitizeIndex = (index: number, length: number): number => {
-  if (index < 0) {
-    return 0;
-  }
-  if (index > length) {
-    return length;
-  }
-  return index;
-};
+export function useKanban() {
+  const [board, setBoard] = useState<BoardData>({
+    columns: [],
+    cards: {},
+  });
 
-export const useKanban = (initial?: BoardData) => {
-  const [board, setBoard] = useState<BoardData>(() => loadBoard(initial));
+  /* ================= LOAD ================= */
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(board));
-  }, [board]);
-
-  const addColumn = useCallback((title: string, color?: string) => {
-    const trimmedTitle = title.trim();
-    if (!trimmedTitle) {
-      return;
-    }
-
-    setBoard((prev) => {
-      const newColumn: Column = {
-        id: `column-${Date.now()}`,
-        title: trimmedTitle,
-        color: color ?? '#EEF2FF',
-        cardIds: [],
-      };
-
-      return {
-        ...prev,
-        columns: [...prev.columns, newColumn],
-      };
-    });
+    loadBoard();
   }, []);
 
-  const removeColumn = useCallback((columnId: string) => {
-    setBoard((prev) => {
-      const column = prev.columns.find((col) => col.id === columnId);
-      if (!column) {
-        return prev;
+  async function loadBoard() {
+    try {
+      const lists = await fetchTaskLists();
+
+      const columns: Column[] = [];
+      const cards: Record<string, Card> = {};
+
+      for (const list of lists) {
+        const tasks: GoogleTask[] = await fetchTasks(list.id);
+
+        columns.push({
+          id: list.id,
+          title: list.title,
+          cardIds: tasks.map((t) => t.id),
+        });
+
+        tasks.forEach((t) => {
+          const { description, labels, image } = parseTaskNotes(t.notes);
+          cards[t.id] = {
+            id: t.id,
+            title: t.title,
+            description,
+            completed: t.status === 'completed',
+            dueDate: t.due,
+            labels,
+            image,
+          };
+        });
       }
 
-      const remainingCards = { ...prev.cards };
-      column.cardIds.forEach((cardId) => {
-        delete remainingCards[cardId];
-      });
+      setBoard({ columns, cards });
+    } catch (err) {
+      console.error('Gagal load Google Tasks', err);
+    }
+  }
 
-      return {
-        columns: prev.columns.filter((col) => col.id !== columnId),
-        cards: remainingCards,
-      };
-    });
-  }, []);
+  /* ================= ADD ================= */
 
-  const addCard = useCallback((columnId: string, card: Omit<Card, 'id'>) => {
-    const trimmedTitle = card.title.trim();
-    if (!trimmedTitle) {
-      return;
+  async function addCard(columnId: string, cardData: Omit<Card, 'id' | 'completed'>) {
+    // Parse notes untuk extract metadata
+    let notes = cardData.description || '';
+    const metadata: { labels?: string[]; image?: string } = {};
+    
+    if (cardData.labels && cardData.labels.length > 0) {
+      metadata.labels = cardData.labels;
+    }
+    if (cardData.image) {
+      metadata.image = cardData.image;
+    }
+    
+    // Gabungkan description dengan metadata di notes
+    if (Object.keys(metadata).length > 0) {
+      notes = notes + '\n\n---METADATA---\n' + JSON.stringify(metadata);
     }
 
-    const id = `card-${Date.now()}`;
-    const newCard: Card = {
-      ...card,
-      id,
-      title: trimmedTitle,
-    };
+    const task = await createTask(columnId, { 
+      title: cardData.title,
+      notes,
+      due: cardData.dueDate || undefined,
+    });
+    console.log('Created task', task);
 
+    // Parse kembali notes untuk extract metadata
+    const { description, labels, image } = parseTaskNotes(task.notes);
+
+    setBoard((prev) => ({
+      ...prev,
+      cards: {
+        ...prev.cards,
+        [task.id]: {
+          id: task.id,
+          title: task.title,
+          description,
+          completed: task.status === 'completed',
+          dueDate: task.due,
+          labels,
+          image,
+        },
+      },
+      columns: prev.columns.map((c) =>
+        c.id === columnId
+          ? { ...c, cardIds: [...c.cardIds, task.id] }
+          : c
+      ),
+    }));
+  }
+
+  /* ================= UPDATE ================= */
+
+  function updateCard(cardId: string, updates: Partial<Card>) {
     setBoard((prev) => {
-      const updatedColumns = prev.columns.map((column) =>
-        column.id === columnId
-          ? { ...column, cardIds: [...column.cardIds, id] }
-          : column,
+      const card = prev.cards[cardId];
+      if (!card) return prev;
+
+      const updatedCard: Card = {
+        ...card,
+        ...updates,
+      };
+
+      // cari column dari state TERBARU
+      const column = prev.columns.find((c) =>
+        c.cardIds.includes(cardId)
       );
 
-      return {
-        columns: updatedColumns,
-        cards: {
-          ...prev.cards,
-          [id]: newCard,
-        },
-      };
-    });
-  }, []);
-
-  const updateCard = useCallback((cardId: string, updates: Partial<Card>) => {
-    setBoard((prev) => {
-      if (!prev.cards[cardId]) {
-        return prev;
+      if (column) {
+        queueTaskPatch(column.id, cardId, {
+          ...(updates.title !== undefined && { title: updates.title }),
+          ...(updates.description !== undefined && {
+            notes: updates.description,
+          }),
+          ...(updates.completed !== undefined && {
+            status: updates.completed ? 'completed' : 'needsAction',
+          }),
+        });
       }
 
       return {
         ...prev,
         cards: {
           ...prev.cards,
-          [cardId]: {
-            ...prev.cards[cardId],
-            ...updates,
-            title: updates.title?.trim() ?? prev.cards[cardId].title,
-          },
+          [cardId]: updatedCard,
         },
       };
     });
-  }, []);
+  }
 
-  const removeCard = useCallback((cardId: string) => {
-    setBoard((prev) => {
-      if (!prev.cards[cardId]) {
-        return prev;
-      }
+  /* ================= DELETE ================= */
 
-      const updatedColumns = prev.columns.map((column) => ({
-        ...column,
-        cardIds: column.cardIds.filter((id) => id !== cardId),
-      }));
+  async function removeCard(cardId: string) {
+    const column = board.columns.find((c) =>
+      c.cardIds.includes(cardId)
+    );
+    if (!column) return;
 
-      const updatedCards = { ...prev.cards };
-      delete updatedCards[cardId];
+    await deleteTask(column.id, cardId);
 
-      return {
-        columns: updatedColumns,
-        cards: updatedCards,
-      };
-    });
-  }, []);
+    setBoard((prev) => ({
+      ...prev,
+      cards: Object.fromEntries(
+        Object.entries(prev.cards).filter(([id]) => id !== cardId)
+      ),
+      columns: prev.columns.map((c) =>
+        c.id === column.id
+          ? { ...c, cardIds: c.cardIds.filter((id) => id !== cardId) }
+          : c
+      ),
+    }));
+  }
 
-  const moveCard = useCallback((payload: MoveCardPayload) => {
-    setBoard((prev) => {
-      const { cardId, fromColumnId, toColumnId } = payload;
-      const fromColumn = prev.columns.find((column) => column.id === fromColumnId);
-      const toColumn = prev.columns.find((column) => column.id === toColumnId);
-      if (!fromColumn || !toColumn) {
-        return prev;
-      }
+  /* ================= ADD COLUMN ================= */
 
-      const sourceIndex = fromColumn.cardIds.indexOf(cardId);
-      if (sourceIndex === -1) {
-        return prev;
-      }
+  async function addColumn(title: string) {
+    const newList = await createTaskList(title);
+    console.log('Created task list', newList);
 
-      const fromCardIds = [...fromColumn.cardIds];
-      fromCardIds.splice(sourceIndex, 1);
+    setBoard((prev) => ({
+      ...prev,
+      columns: [
+        ...prev.columns,
+        {
+          id: newList.id,
+          title: newList.title,
+          cardIds: [],
+        },
+      ],
+    }));
+  }
 
-      const destinationCardIds = fromColumnId === toColumnId ? fromCardIds : [...toColumn.cardIds];
-      const targetIndex = sanitizeIndex(payload.toIndex, destinationCardIds.length);
-      destinationCardIds.splice(targetIndex, 0, cardId);
+  /* ================= REMOVE COLUMN ================= */
 
-      return {
-        ...prev,
-        columns: prev.columns.map((column) => {
-          if (column.id === fromColumnId) {
-            return { ...column, cardIds: fromCardIds };
-          }
-          if (column.id === toColumnId) {
-            return { ...column, cardIds: destinationCardIds };
-          }
-          return column;
-        }),
-      };
-    });
-  }, []);
+  async function removeColumn(columnId: string) {
+    await deleteTaskList(columnId);
+    console.log('Deleted task list', columnId);
 
-  const moveColumn = useCallback((fromIndex: number, toIndex: number) => {
-    setBoard((prev) => {
-      const newColumns = [...prev.columns];
-      const [movedColumn] = newColumns.splice(fromIndex, 1);
-      newColumns.splice(toIndex, 0, movedColumn);
+    setBoard((prev) => ({
+      ...prev,
+      columns: prev.columns.filter((c) => c.id !== columnId),
+      // Also remove all cards from this column
+      cards: Object.fromEntries(
+        Object.entries(prev.cards).filter(
+          ([cardId]) => !prev.columns.find((c) => c.id === columnId)?.cardIds.includes(cardId)
+        )
+      ),
+    }));
+  }
 
-      return {
-        ...prev,
-        columns: newColumns,
-      };
-    });
-  }, []);
+  /* ================= API ================= */
 
-  const exportBoard = useCallback((): string => JSON.stringify(board, null, 2), [board]);
-
-  const importBoard = useCallback((payload: string | BoardData) => {
-    let data: BoardData | null = null;
-
-    if (typeof payload === 'string') {
-      try {
-        data = JSON.parse(payload) as BoardData;
-      } catch (error) {
-        console.error('Failed to parse imported board', error);
-        return false;
-      }
-    } else {
-      data = payload;
-    }
-
-    if (!data || !Array.isArray(data.columns) || typeof data.cards !== 'object') {
-      return false;
-    }
-
-    setBoard(data);
-    return true;
-  }, []);
-
-  const api = useMemo(
-    () => ({
-      board,
-      addColumn,
-      removeColumn,
-      addCard,
-      updateCard,
-      removeCard,
-      moveCard,
-      moveColumn,
-      importBoard,
-      exportBoard,
-    }),
-    [board, addColumn, removeColumn, addCard, updateCard, removeCard, moveCard, moveColumn, importBoard, exportBoard],
-  );
-
-  return api;
-};
+  return {
+    board,
+    addCard,
+    updateCard,
+    removeCard,
+    addColumn,
+    removeColumn,
+  };
+}

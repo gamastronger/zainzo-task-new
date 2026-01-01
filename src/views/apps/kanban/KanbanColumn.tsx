@@ -70,6 +70,8 @@ const KanbanColumn = ({ column, cards, completedCards = [], onAddCard, onUpdateC
       return;
     }
 
+    console.log('Adding card to column', column.id, form);
+    
     onAddCard(column.id, {
       title: form.title,
       description: form.description.trim() ? form.description : undefined,

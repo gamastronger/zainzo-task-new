@@ -1,42 +1,18 @@
 import axios from 'axios';
-import ENV from '../config/env';
+import { authEvents } from 'src/guards/google/authEvents';
 
-/**
- * Axios instance configured for Laravel Sanctum authentication
- * 
- * Key configuration:
- * - withCredentials: true → Sends HTTP-only cookies with every request
- * - baseURL: Points to /api endpoint on backend
- * - Headers: Accept JSON responses
- * 
- * Laravel Sanctum uses HTTP-only cookies for authentication.
- * No manual token handling needed in frontend.
- */
-const axiosServices = axios.create({
-  baseURL: `${ENV.API_BASE_URL}/api`,
-  withCredentials: true, // CRITICAL: Enables cookie-based auth (Laravel Sanctum)
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  }
+const instance = axios.create({
+  withCredentials: true,
 });
 
-// Response interceptor for error handling
-axiosServices.interceptors.response.use(
-  (response) => response,
+instance.interceptors.response.use(
+  (res) => res,
   (error) => {
-    // Handle unauthorized error (401)
-    // This means the session cookie is invalid/expired
-    if (error.response?.status === 401) {
-      // Redirect to login if not already there
-      if (window.location.pathname !== '/auth/login' && 
-          !window.location.pathname.startsWith('/auth/')) {
-        window.location.href = '/auth/login';
-      }
+    if (error.response?.status === 401 || error.response?.status === 419) {
+      authEvents.logout(); // ⬅️ AUTO LOGOUT
     }
-    return Promise.reject((error.response && error.response.data) || 'Request failed');
+    return Promise.reject(error);
   }
 );
 
-export default axiosServices;
- 
+export default instance;
