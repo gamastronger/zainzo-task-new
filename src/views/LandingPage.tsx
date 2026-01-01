@@ -285,31 +285,10 @@ const LandingPage = () => {
 
       {/* FOOTER */}
       <Box sx={{ py: 4, textAlign: 'center', bgcolor: '#F8FAFC' }}>
-  <Typography sx={{ color: '#64748B', fontSize: 14, mb: 1 }}>
-    © 2026 Zainzo Task. All rights reserved.
-  </Typography>
-
-  <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
-    <a
-      href="https://task.digitaltech.my.id/privacy-policy/"
-      target="_blank"
-      rel="noopener noreferrer"
-      style={{ color: '#2563EB', textDecoration: 'none', fontSize: 14 }}
-    >
-      Privacy Policy
-    </a>
-
-    <a
-      href="https://task.digitaltech.my.id/privacy-policy/"
-      target="_blank"
-      rel="noopener noreferrer"
-      style={{ color: '#2563EB', textDecoration: 'none', fontSize: 14 }}
-    >
-      Terms of Service
-    </a>
-  </Box>
-</Box>
-
+        <Typography sx={{ color: '#64748B', fontSize: 14 }}>
+          © 2026 Zainzo Task. All rights reserved.
+        </Typography>
+      </Box>
     </Box>
   );
 };
