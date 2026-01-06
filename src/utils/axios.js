@@ -9,7 +9,7 @@ instance.interceptors.response.use(
   (res) => res,
   (error) => {
     if (error.response?.status === 401 || error.response?.status === 419) {
-      authEvents.logout(); // ⬅️ AUTO LOGOUT
+      authEvents.logout();
     }
     return Promise.reject(error);
   }
