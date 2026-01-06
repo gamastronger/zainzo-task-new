@@ -1,11 +1,12 @@
 // src/utils/googleTaskQueue.ts
 
-import { patchTask } from 'src/api/googleTasks';
+import { patchTask, GoogleTask } from 'src/api/googleTasks';
 
 export type TaskPatchPayload = {
   title?: string;
   notes?: string;
   status?: 'completed' | 'needsAction';
+  due?: string | null;
 };
 
 type QueueItem = {
@@ -48,7 +49,7 @@ function scheduleFlush() {
 
     await Promise.allSettled(
       jobs.map((job) =>
-        patchTask(job.taskListId, job.taskId, job.payload)
+        patchTask(job.taskListId, job.taskId, job.payload as Partial<GoogleTask>)
       )
     );
   }, 600); // debounce 600ms

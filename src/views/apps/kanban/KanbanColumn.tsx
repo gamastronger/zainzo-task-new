@@ -66,7 +66,6 @@ const KanbanColumn = ({ column, cards, completedCards = [], onAddCard, onUpdateC
   const [form, setForm] = useState({
     title: '',
     description: '',
-    image: '',
     dueDate: '',
     labels: '',
   });
@@ -79,11 +78,20 @@ const KanbanColumn = ({ column, cards, completedCards = [], onAddCard, onUpdateC
     console.log('🔵 handleSubmit called with:', { columnId: column.id, form });
     
     try {
+      const buildDueIso = (dateStr: string) => {
+        if (!dateStr) return undefined;
+        const [y, m, d] = dateStr.split('-').map((v) => parseInt(v, 10));
+        if (!y || !m || !d) return undefined;
+        const dt = new Date(y, m - 1, d, 0, 0, 0, 0);
+        return dt.toISOString();
+      };
+
+      const dueIso = buildDueIso(form.dueDate);
+
       await onAddCard(column.id, {
         title: form.title,
         description: form.description.trim() ? form.description : undefined,
-        image: form.image.trim() ? form.image : undefined,
-        dueDate: form.dueDate || undefined,
+        dueDate: dueIso,
         labels: form.labels
           .split(',')
           .map((label) => label.trim())
@@ -91,7 +99,7 @@ const KanbanColumn = ({ column, cards, completedCards = [], onAddCard, onUpdateC
         completed: false,
       });
 
-      setForm({ title: '', description: '', image: '', dueDate: '', labels: '' });
+      setForm({ title: '', description: '', dueDate: '', labels: '' });
       setAddOpen(false);
       console.log('✅ Form submitted successfully');
     } catch (error) {
@@ -107,11 +115,12 @@ const KanbanColumn = ({ column, cards, completedCards = [], onAddCard, onUpdateC
   // Warna background sesuai kolom dari Figma
   const getColumnColor = () => {
     const title = column.title.toLowerCase();
-    if (title.includes('todo')) return '#b1bbf5ff';
-    if (title.includes('progress')) return '#d9f9aaff';
-    if (title.includes('pending')) return '#ceb0faff';
-    if (title.includes('done')) return '#38d2caff';
-    return theme.palette.background.paper;
+    if (title.includes('todo')) return '#f2e7feff';
+    if (title.includes('progress')) return '#d8e5ffff';
+    if (title.includes('pending')) return 'rgba(255, 248, 216, 1)';
+    if (title.includes('done')) return '#daffe9ff';
+    // Default untuk kolom bebas / lainnya
+    return '#dfdfdfff';
   };
 
   return (
@@ -424,11 +433,6 @@ const KanbanColumn = ({ column, cards, completedCards = [], onAddCard, onUpdateC
               minRows={3}
               value={form.description}
               onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
-            />
-            <TextField
-              label="Image URL"
-              value={form.image}
-              onChange={(event) => setForm((prev) => ({ ...prev, image: event.target.value }))}
             />
             <TextField
               label="Due Date"

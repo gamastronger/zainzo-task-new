@@ -56,13 +56,29 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
   const [editOpen, setEditOpen] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
-  const [form, setForm] = useState(() => ({
-    title: card.title,
-    description: card.description ?? '',
-    image: card.image ?? '',
-    dueDate: card.dueDate ?? '',
-    labels: (card.labels ?? []).join(', '),
-  }));
+  const getDueDateString = (due?: string | null) => {
+    if (!due) {
+      return '';
+    }
+    const d = new Date(due);
+    if (Number.isNaN(d.getTime())) {
+      return '';
+    }
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const [form, setForm] = useState(() => {
+    return {
+      title: card.title,
+      description: card.description ?? '',
+      image: card.image ?? '',
+      dueDate: getDueDateString(card.dueDate),
+      labels: (card.labels ?? []).join(', '),
+    };
+  });
 
   const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     event.stopPropagation();
@@ -452,7 +468,7 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
               title: card.title,
               description: card.description ?? '',
               image: card.image ?? '',
-              dueDate: card.dueDate ?? '',
+                dueDate: getDueDateString(card.dueDate),
               labels: (card.labels ?? []).join(', '),
             });
             setEditOpen(true);
@@ -517,11 +533,21 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
           <Button
             variant="contained"
             onClick={() => {
+              const buildDueIso = (dateStr: string) => {
+                if (!dateStr) return '';
+                const [y, m, d] = dateStr.split('-').map((v) => parseInt(v, 10));
+                if (!y || !m || !d) return '';
+                const dt = new Date(y, m - 1, d, 0, 0, 0, 0);
+                return dt.toISOString();
+              };
+
+              const dueIso = form.dueDate ? buildDueIso(form.dueDate) : '';
+
               onUpdate(card.id, {
                 title: form.title,
                 description: form.description.trim() ? form.description : undefined,
                 image: form.image.trim() ? form.image : undefined,
-                dueDate: form.dueDate || undefined,
+                dueDate: dueIso, // '' artinya clear, ISO jika di-set
                 labels: form.labels
                   .split(',')
                   .map((label) => label.trim())

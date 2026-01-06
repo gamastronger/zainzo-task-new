@@ -50,22 +50,18 @@ export function useKanban() {
   useEffect(() => {
     loadBoard();
     
-    // Commented out auto-refresh untuk avoid override drag changes
-    // User bisa manual refresh jika perlu
-    /*
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        console.log('🔄 Tab active, refreshing board...');
+        console.log('🔄 Tab active, auto refreshing board...');
         loadBoard();
       }
     };
-    
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    
+
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-    */
   }, []);
 
   async function loadBoard() {
@@ -213,6 +209,18 @@ export function useKanban() {
         ...updates,
       };
 
+      // Normalisasi dueDate: string kosong berarti clear
+      let duePatch: string | null | undefined;
+      if (updates.dueDate !== undefined) {
+        if (updates.dueDate === '') {
+          updatedCard.dueDate = undefined;
+          duePatch = null; // Clear due di Google Tasks
+        } else {
+          updatedCard.dueDate = updates.dueDate;
+          duePatch = updates.dueDate;
+        }
+      }
+
       // cari column dari state TERBARU
       const column = prev.columns.find((c) =>
         c.cardIds.includes(cardId)
@@ -227,6 +235,7 @@ export function useKanban() {
           ...(updates.completed !== undefined && {
             status: updates.completed ? 'completed' : 'needsAction',
           }),
+          ...(duePatch !== undefined && { due: duePatch }),
         });
       }
 
@@ -350,7 +359,7 @@ export function useKanban() {
       await deleteTask(fromColumnId, cardId);
       console.log('✅ Deleted from old tasklist');
       
-      // 2. Create in new tasklist with same data
+      // 2. Create in new tasklist dengan data yang sama
       const taskData = {
         title: card.title,
         notes: card.description || undefined,
@@ -365,11 +374,36 @@ export function useKanban() {
       if (!newTask || !newTask.id) {
         throw new Error('Failed to create task in new tasklist - no ID returned');
       }
-      
-      // Reload board dari Google Tasks untuk memastikan state sync 100%
-      console.log('🔄 Reloading board to sync state...');
-      await loadBoard();
-      console.log('✅ Task moved between tasklists and board reloaded');
+
+      // Update state lokal agar memakai ID task baru dari Google
+      if (newTask.id !== cardId) {
+        console.log('🔄 Updating local card ID from', cardId, 'to', newTask.id);
+        setBoard((prev) => {
+          const { [cardId]: oldCard, ...restCards } = prev.cards;
+
+          const newColumns = prev.columns.map((col) => {
+            // Card sudah dipindahkan ke toColumnId secara optimistic di atas,
+            // di sini kita hanya mengganti ID di daftar cardIds.
+            return {
+              ...col,
+              cardIds: col.cardIds.map((id) => (id === cardId ? newTask.id! : id)),
+            };
+          });
+
+          return {
+            columns: newColumns,
+            cards: {
+              ...restCards,
+              [newTask.id!]: {
+                ...oldCard,
+                id: newTask.id!,
+              },
+            },
+          };
+        });
+      }
+
+      console.log('✅ Task moved between tasklists without full reload');
     } catch (error) {
       console.error('❌ Failed to move task in Google Tasks:', error);
       // Revert UI change jika API gagal
