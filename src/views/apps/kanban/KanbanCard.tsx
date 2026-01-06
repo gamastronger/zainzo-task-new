@@ -49,6 +49,7 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
       cardId: card.id,
       columnId,
     },
+    disabled: card.completed, // Disable dragging for completed tasks
   });
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -97,9 +98,9 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
       transform: CSS.Transform.toString(transform),
       transition,
       opacity: isDragging ? 0.6 : 1,
-      cursor: isDragging ? 'grabbing' : 'grab',
+      cursor: card.completed ? 'default' : (isDragging ? 'grabbing' : 'grab'),
     }),
-    [transform, transition, isDragging],
+    [transform, transition, isDragging, card.completed],
   );
 
   const formattedDate = useMemo(() => {
@@ -119,23 +120,25 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
     <>
       <Paper
         ref={setNodeRef}
-        elevation={isDragging ? 8 : 0}
+        elevation={0}
         style={style}
         {...attributes}
-        {...listeners}
+        {...(!card.completed ? listeners : {})}
         sx={{
-          p: { xs: 1.5, sm: 2 },
-          borderRadius: { xs: 1.5, sm: 2 },
+          p: { xs: 1, sm: 1.25 },
+          borderRadius: 1,
           backgroundColor: 'white',
-          border: 'none',
-          boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.08)',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          border: '1px solid',
+          borderColor: 'divider',
+          boxShadow: 'none',
+          transition: 'all 0.2s ease',
           position: 'relative',
           opacity: card.completed ? 0.7 : 1,
           transform: isChecking ? 'scale(0.98)' : 'scale(1)',
           '&:hover': {
-            boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.12)',
-            transform: isChecking ? 'scale(0.98) translateY(-2px)' : 'translateY(-2px)',
+            borderColor: card.completed ? 'divider' : 'primary.light',
+            backgroundColor: card.completed ? 'white' : 'action.hover',
+            transform: isChecking ? 'scale(0.98)' : 'scale(1)',
           },
         }}
       >
@@ -301,7 +304,7 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
         )}
         <Stack direction="row" alignItems="flex-start" spacing={1}>
           <Checkbox
-            checked={card.completed || false}
+            checked={card.completed}
             onChange={handleCheckboxChange}
             onClick={(e) => e.stopPropagation()}
             size="small"
@@ -354,11 +357,12 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
           <Box sx={{ flex: 1 }}>
             <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
               <Typography 
-                variant="subtitle2" 
-                fontWeight={600} 
+                variant="body2" 
+                fontWeight={500} 
                 sx={{ 
                   flex: 1, 
-                  lineHeight: 1.4,
+                  lineHeight: 1.5,
+                  fontSize: '0.9rem',
                   textDecoration: card.completed ? 'line-through' : 'none',
                   color: card.completed ? 'text.secondary' : 'text.primary',
                   transition: 'all 0.3s ease',
@@ -386,26 +390,26 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
             variant="body2"
             color="text.secondary"
             sx={{ 
-              mt: 1, 
-              mb: 1.5, 
+              mt: 0.5, 
+              mb: 1, 
               ml: 4,
               display: '-webkit-box', 
               WebkitLineClamp: 2, 
               WebkitBoxOrient: 'vertical', 
               overflow: 'hidden',
-              fontSize: '0.85rem',
-              lineHeight: 1.5,
+              fontSize: '0.8rem',
+              lineHeight: 1.4,
               textDecoration: card.completed ? 'line-through' : 'none',
             }}
           >
             {card.description}
           </Typography>
         )}
-        <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1} sx={{ ml: 4 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={0.5} sx={{ ml: 4, mt: 0.5 }}>
           {formattedDate && (
             <Stack direction="row" alignItems="center" spacing={0.5}>
-              <IconCalendar size={14} color={theme.palette.text.secondary} />
-              <Typography variant="caption" color="text.secondary" fontSize="0.75rem">
+              <IconCalendar size={12} color={theme.palette.text.secondary} />
+              <Typography variant="caption" color="text.secondary" fontSize="0.7rem">
                 {formattedDate}
               </Typography>
             </Stack>
@@ -421,11 +425,12 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
                     backgroundColor: getLabelColor(label),
                     color: 'white',
                     fontWeight: 500,
-                    height: 22,
-                    fontSize: '0.75rem',
-                    borderRadius: '4px',
+                    height: 18,
+                    fontSize: '0.7rem',
+                    borderRadius: '3px',
                     '& .MuiChip-label': {
-                      px: 1.5,
+                      px: 1,
+                      py: 0,
                     },
                   }}
                 />
@@ -488,11 +493,11 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
               value={form.description}
               onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
             />
-            {/* <TextField
+            <TextField
               label="Image URL"
               value={form.image}
               onChange={(event) => setForm((prev) => ({ ...prev, image: event.target.value }))}
-            /> */}
+            />
             <TextField
               label="Due Date"
               type="date"

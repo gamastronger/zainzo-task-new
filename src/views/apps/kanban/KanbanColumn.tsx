@@ -19,6 +19,7 @@ import {
 } from '@mui/material';
 import { IconDotsVertical, IconPlus, IconTrash, IconChevronDown, IconChevronRight } from '@tabler/icons-react';
 import { useSortable } from '@dnd-kit/sortable';
+import { useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Card, Column } from './kanban.types';
@@ -28,7 +29,7 @@ type KanbanColumnProps = {
   column: Column;
   cards: Card[];
   completedCards?: Card[];
-  onAddCard: (columnId: string, card: Omit<Card, 'id'>) => void;
+  onAddCard: (columnId: string, card: Omit<Card, 'id'>) => Promise<void>;
   onUpdateCard: (cardId: string, updates: Partial<Card>) => void;
   onRemoveCard: (cardId: string) => void;
   onRemoveColumn: (columnId: string) => void;
@@ -45,6 +46,11 @@ const KanbanColumn = ({ column, cards, completedCards = [], onAddCard, onUpdateC
     isDragging,
   } = useSortable({
     id: column.id,
+    data: { type: 'column', columnId: column.id },
+  });
+
+  const { setNodeRef: setDroppableRef } = useDroppable({
+    id: `droppable-${column.id}`,
     data: { type: 'column', columnId: column.id },
   });
 
@@ -65,26 +71,33 @@ const KanbanColumn = ({ column, cards, completedCards = [], onAddCard, onUpdateC
     labels: '',
   });
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form.title.trim()) {
       return;
     }
 
-    console.log('Adding card to column', column.id, form);
+    console.log('🔵 handleSubmit called with:', { columnId: column.id, form });
     
-    onAddCard(column.id, {
-      title: form.title,
-      description: form.description.trim() ? form.description : undefined,
-      image: form.image.trim() ? form.image : undefined,
-      dueDate: form.dueDate || undefined,
-      labels: form.labels
-        .split(',')
-        .map((label) => label.trim())
-        .filter((label) => label.length > 0),
-    });
+    try {
+      await onAddCard(column.id, {
+        title: form.title,
+        description: form.description.trim() ? form.description : undefined,
+        image: form.image.trim() ? form.image : undefined,
+        dueDate: form.dueDate || undefined,
+        labels: form.labels
+          .split(',')
+          .map((label) => label.trim())
+          .filter((label) => label.length > 0),
+        completed: false,
+      });
 
-    setForm({ title: '', description: '', image: '', dueDate: '', labels: '' });
-    setAddOpen(false);
+      setForm({ title: '', description: '', image: '', dueDate: '', labels: '' });
+      setAddOpen(false);
+      console.log('✅ Form submitted successfully');
+    } catch (error) {
+      console.error('❌ Error in handleSubmit:', error);
+      // Dialog tetap terbuka jika ada error
+    }
   };
 
   const handleUncompleteCard = (cardId: string) => {
@@ -162,11 +175,11 @@ const KanbanColumn = ({ column, cards, completedCards = [], onAddCard, onUpdateC
 
       <SortableContext items={cards.map((card) => card.id)} strategy={verticalListSortingStrategy}>
         <Box
-          ref={setNodeRef}
+          ref={setDroppableRef}
           sx={{
             display: 'flex',
             flexDirection: 'column',
-            gap: 1.5,
+            gap: 1,
             minHeight: 100,
             flex: 1,
             overflowY: 'auto',
@@ -284,50 +297,50 @@ const KanbanColumn = ({ column, cards, completedCards = [], onAddCard, onUpdateC
 
       {/* Completed Tasks Section */}
       {completedCards.length > 0 && (
-        <Box sx={{ mt: 2 }}>
+        <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
           <Box 
             onClick={() => setCompletedExpanded(!completedExpanded)}
             sx={{ 
               display: 'flex',
               alignItems: 'center',
-              py: 1,
-              px: 1,
+              py: 0.5,
+              px: 0.5,
               cursor: 'pointer',
-              borderRadius: 1,
+              borderRadius: 0.5,
               '&:hover': {
-                bgcolor: 'rgba(0, 0, 0, 0.03)',
+                bgcolor: 'rgba(0, 0, 0, 0.02)',
               },
               transition: 'background-color 0.2s',
             }}
           >
-            <IconButton size="small" sx={{ p: 0.5, mr: 0.5 }}>
-              {completedExpanded ? <IconChevronDown size={18} /> : <IconChevronRight size={18} />}
+            <IconButton size="small" sx={{ p: 0.25, mr: 0.5 }}>
+              {completedExpanded ? <IconChevronDown size={16} /> : <IconChevronRight size={16} />}
             </IconButton>
             <Typography 
               variant="body2" 
               fontWeight={500}
               color="text.secondary"
-              sx={{ fontSize: '0.875rem' }}
+              sx={{ fontSize: '0.8rem' }}
             >
               Selesai ({completedCards.length})
             </Typography>
           </Box>
 
           <Collapse in={completedExpanded}>
-            <Box sx={{ mt: 1 }}>
+            <Box sx={{ mt: 0.5 }}>
               {completedCards.map((card) => (
                 <Box
                   key={card.id}
                   sx={{
                     display: 'flex',
                     alignItems: 'flex-start',
-                    py: 1,
-                    px: 1,
+                    py: 0.75,
+                    px: 0.75,
                     mb: 0.5,
-                    borderRadius: 1,
-                    bgcolor: 'rgba(255, 255, 255, 0.7)',
+                    borderRadius: 0.5,
+                    bgcolor: 'rgba(255, 255, 255, 0.5)',
                     '&:hover': {
-                      bgcolor: 'rgba(255, 255, 255, 0.9)',
+                      bgcolor: 'rgba(255, 255, 255, 0.8)',
                     },
                     transition: 'background-color 0.2s',
                   }}
@@ -338,7 +351,7 @@ const KanbanColumn = ({ column, cards, completedCards = [], onAddCard, onUpdateC
                     size="small"
                     sx={{
                       p: 0,
-                      mr: 1,
+                      mr: 0.75,
                       color: 'success.main',
                       '&.Mui-checked': {
                         color: 'success.main',
@@ -351,7 +364,8 @@ const KanbanColumn = ({ column, cards, completedCards = [], onAddCard, onUpdateC
                       sx={{
                         textDecoration: 'line-through',
                         color: 'text.secondary',
-                        fontSize: '0.875rem',
+                        fontSize: '0.8rem',
+                        fontWeight: 400,
                         wordBreak: 'break-word',
                       }}
                     >
@@ -361,7 +375,7 @@ const KanbanColumn = ({ column, cards, completedCards = [], onAddCard, onUpdateC
                       <Typography 
                         variant="caption" 
                         color="text.disabled"
-                        sx={{ fontSize: '0.75rem' }}
+                        sx={{ fontSize: '0.7rem' }}
                       >
                         {new Date(card.dueDate).toLocaleDateString('id-ID', { 
                           day: 'numeric', 

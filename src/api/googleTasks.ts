@@ -40,10 +40,31 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
   }
 
   if (!res.ok) {
-    throw new Error(`API_ERROR ${res.status}`);
+    let errorMessage = `API_ERROR ${res.status}`;
+    try {
+      const errorData = await res.json();
+      console.error('❌ API Error Response:', errorData);
+      if (errorData.error?.message) {
+        errorMessage += `: ${errorData.error.message}`;
+      }
+    } catch (e) {
+      // Jika gagal parse error response
+    }
+    throw new Error(errorMessage);
   }
 
-  return res.json();
+  // Handle empty responses (like DELETE returning 204 No Content)
+  const contentType = res.headers.get('content-type');
+  if (!contentType || !contentType.includes('application/json')) {
+    return null as any;
+  }
+
+  const text = await res.text();
+  if (!text || text.trim() === '') {
+    return null as any;
+  }
+
+  return JSON.parse(text);
 }
 
 /* ===== TASK LIST ===== */
@@ -71,8 +92,9 @@ export function deleteTaskList(taskListId: string) {
 /* ===== TASK ===== */
 
 export function fetchTasks(taskListId: string) {
+  // Tambahkan showCompleted=true dan showHidden=true agar completed tasks juga di-load
   return request<{ items?: GoogleTask[] }>(
-    `${BASE_URL}/lists/${taskListId}/tasks`
+    `${BASE_URL}/lists/${taskListId}/tasks?showCompleted=true&showHidden=true`
   ).then((r) => r.items ?? []);
 }
 
@@ -80,6 +102,7 @@ export function createTask(
   taskListId: string,
   task: Pick<GoogleTask, 'title' | 'notes' | 'due'>
 ) {
+  console.log('📤 Creating task with payload:', { taskListId, task });
   return request<GoogleTask>(
     `${BASE_URL}/lists/${taskListId}/tasks`,
     { method: 'POST', body: JSON.stringify(task) }
@@ -102,4 +125,30 @@ export function deleteTask(taskListId: string, taskId: string) {
     `${BASE_URL}/lists/${taskListId}/tasks/${taskId}`,
     { method: 'DELETE' }
   );
+}
+
+export function moveTask(
+  taskListId: string,
+  taskId: string,
+  options?: { parent?: string; previous?: string }
+) {
+  // Move task to different list or reorder within same list
+  // previous: ID of the sibling task after which to position this task
+  // parent: Parent task identifier (for subtasks)
+  let url = `${BASE_URL}/lists/${taskListId}/tasks/${taskId}/move`;
+  const params = new URLSearchParams();
+  
+  if (options?.previous) {
+    params.append('previous', options.previous);
+  }
+  if (options?.parent) {
+    params.append('parent', options.parent);
+  }
+  
+  if (params.toString()) {
+    url += `?${params.toString()}`;
+  }
+  
+  console.log('🔄 Moving task:', { taskListId, taskId, options, url });
+  return request<GoogleTask>(url, { method: 'POST' });
 }

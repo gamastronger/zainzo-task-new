@@ -9,29 +9,7 @@ import {
   GoogleTask,
 } from 'src/api/googleTasks';
 import { queueTaskPatch } from 'src/utils/googleTasksQueue';
-
-/* ================= TYPES ================= */
-
-export interface Card {
-  id: string;
-  title: string;
-  description?: string;
-  completed: boolean;
-  dueDate?: string;
-  labels?: string[];
-  image?: string;
-}
-
-export interface Column {
-  id: string;
-  title: string;
-  cardIds: string[];
-}
-
-export interface BoardData {
-  columns: Column[];
-  cards: Record<string, Card>;
-}
+import { Card, Column, BoardData } from './kanban.types';
 
 /* ================= HELPERS ================= */
 
@@ -65,11 +43,29 @@ export function useKanban() {
     columns: [],
     cards: {},
   });
+  const [isSyncing, setIsSyncing] = useState(false);
 
   /* ================= LOAD ================= */
 
   useEffect(() => {
     loadBoard();
+    
+    // Commented out auto-refresh untuk avoid override drag changes
+    // User bisa manual refresh jika perlu
+    /*
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('🔄 Tab active, refreshing board...');
+        loadBoard();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+    */
   }, []);
 
   async function loadBoard() {
@@ -81,6 +77,9 @@ export function useKanban() {
 
       for (const list of lists) {
         const tasks: GoogleTask[] = await fetchTasks(list.id);
+        
+        const completedCount = tasks.filter(t => t.status === 'completed').length;
+        console.log(`📋 List "${list.title}": ${tasks.length} tasks (${completedCount} completed)`);
 
         columns.push({
           id: list.id,
@@ -102,6 +101,11 @@ export function useKanban() {
         });
       }
 
+      console.log('✅ Board loaded:', { 
+        columnCount: columns.length, 
+        totalCards: Object.keys(cards).length,
+        completedCards: Object.values(cards).filter(c => c.completed).length
+      });
       setBoard({ columns, cards });
     } catch (err) {
       console.error('Gagal load Google Tasks', err);
@@ -110,10 +114,13 @@ export function useKanban() {
 
   /* ================= ADD ================= */
 
-  async function addCard(columnId: string, cardData: Omit<Card, 'id' | 'completed'>) {
-    // Parse notes untuk extract metadata
-    let notes = cardData.description || '';
-    const metadata: { labels?: string[]; image?: string } = {};
+  async function addCard(columnId: string, cardData: Omit<Card, 'id'>) {
+    console.log('🔵 addCard called with:', { columnId, cardData });
+    
+    try {
+      // Parse notes untuk extract metadata
+      let notes = cardData.description || '';
+      const metadata: { labels?: string[]; image?: string } = {};
     
     if (cardData.labels && cardData.labels.length > 0) {
       metadata.labels = cardData.labels;
@@ -127,17 +134,46 @@ export function useKanban() {
       notes = notes + '\n\n---METADATA---\n' + JSON.stringify(metadata);
     }
 
-    const task = await createTask(columnId, { 
-      title: cardData.title,
-      notes,
-      due: cardData.dueDate || undefined,
-    });
-    console.log('Created task', task);
+      // Format due date ke RFC 3339 jika ada
+      let formattedDue: string | undefined;
+      if (cardData.dueDate) {
+        try {
+          // Input format: YYYY-MM-DD dari date picker
+          // Output format: YYYY-MM-DDTHH:MM:SS.000Z untuk Google Tasks API
+          const date = new Date(cardData.dueDate);
+          formattedDue = date.toISOString();
+          console.log('📅 Formatted due date:', { input: cardData.dueDate, output: formattedDue });
+        } catch (e) {
+          console.warn('⚠️ Invalid due date format:', cardData.dueDate);
+        }
+      }
 
-    // Parse kembali notes untuk extract metadata
-    const { description, labels, image } = parseTaskNotes(task.notes);
+      // Build payload - hanya kirim field yang ada nilainya
+      const taskPayload: { title: string; notes?: string; due?: string } = {
+        title: cardData.title,
+      };
+      
+      // Hanya tambahkan notes jika ada content (selain metadata kosong)
+      const hasDescription = cardData.description && cardData.description.trim();
+      const hasMetadata = Object.keys(metadata).length > 0;
+      
+      if (hasDescription || hasMetadata) {
+        taskPayload.notes = notes;
+      }
+      
+      if (formattedDue) {
+        taskPayload.due = formattedDue;
+      }
 
-    setBoard((prev) => ({
+      console.log('📦 Final payload:', taskPayload);
+
+      const task = await createTask(columnId, taskPayload);
+      console.log('✅ Created task successfully:', task);
+
+      // Parse kembali notes untuk extract metadata
+      const { description, labels, image } = parseTaskNotes(task.notes);
+
+      setBoard((prev) => ({
       ...prev,
       cards: {
         ...prev.cards,
@@ -151,12 +187,18 @@ export function useKanban() {
           image,
         },
       },
-      columns: prev.columns.map((c) =>
-        c.id === columnId
-          ? { ...c, cardIds: [...c.cardIds, task.id] }
-          : c
-      ),
-    }));
+        columns: prev.columns.map((c) =>
+          c.id === columnId
+            ? { ...c, cardIds: [...c.cardIds, task.id] }
+            : c
+        ),
+      }));
+      console.log('✅ Card added to board state');
+    } catch (error) {
+      console.error('❌ Error adding card:', error);
+      alert('Gagal menambahkan card: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      throw error;
+    }
   }
 
   /* ================= UPDATE ================= */
@@ -258,14 +300,157 @@ export function useKanban() {
     }));
   }
 
+  /* ================= MOVE CARD ================= */
+
+  async function moveCard(cardId: string, fromColumnId: string, toColumnId: string) {
+    console.log('🔄 moveCard:', { cardId, fromColumnId, toColumnId });
+    
+    if (isSyncing) {
+      console.log('⚠️ Already syncing, skipping...');
+      return;
+    }
+    
+    setIsSyncing(true);
+    
+    const card = board.cards[cardId];
+    if (!card || card.completed) {
+      setIsSyncing(false);
+      return;
+    }
+    
+    // Update UI immediately (optimistic update)
+    setBoard((prev) => {
+      const card = prev.cards[cardId];
+      if (!card || card.completed) return prev;
+
+      // Remove from old column, add to new column
+      const newColumns = prev.columns.map((col) => {
+        if (col.id === fromColumnId) {
+          return { ...col, cardIds: col.cardIds.filter((id) => id !== cardId) };
+        }
+        if (col.id === toColumnId) {
+          return { ...col, cardIds: [...col.cardIds, cardId] };
+        }
+        return col;
+      });
+
+      return {
+        ...prev,
+        columns: newColumns,
+      };
+    });
+
+    // Sync to Google Tasks API
+    try {
+      // Google Tasks API doesn't support moving tasks between tasklists directly
+      // We need to delete from old tasklist and create in new tasklist
+      console.log('📤 Moving task between tasklists via delete+create');
+      
+      // 1. Delete from old tasklist
+      await deleteTask(fromColumnId, cardId);
+      console.log('✅ Deleted from old tasklist');
+      
+      // 2. Create in new tasklist with same data
+      const taskData = {
+        title: card.title,
+        notes: card.description || undefined,
+        due: card.dueDate || undefined,
+        status: card.completed ? 'completed' : 'needsAction',
+      } as Partial<GoogleTask>;
+      
+      console.log('📤 Creating task in new tasklist with data:', taskData);
+      const newTask = await createTask(toColumnId, taskData as any);
+      console.log('✅ Created in new tasklist:', { id: newTask?.id, fullTask: newTask });
+      
+      if (!newTask || !newTask.id) {
+        throw new Error('Failed to create task in new tasklist - no ID returned');
+      }
+      
+      // Reload board dari Google Tasks untuk memastikan state sync 100%
+      console.log('🔄 Reloading board to sync state...');
+      await loadBoard();
+      console.log('✅ Task moved between tasklists and board reloaded');
+    } catch (error) {
+      console.error('❌ Failed to move task in Google Tasks:', error);
+      // Revert UI change jika API gagal
+      setBoard((prev) => {
+        const newColumns = prev.columns.map((col) => {
+          if (col.id === toColumnId) {
+            return { ...col, cardIds: col.cardIds.filter((id) => id !== cardId) };
+          }
+          if (col.id === fromColumnId) {
+            return { ...col, cardIds: [...col.cardIds, cardId] };
+          }
+          return col;
+        });
+        return { ...prev, columns: newColumns };
+      });
+      alert('Gagal memindahkan task: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    } finally {
+      setIsSyncing(false);
+    }
+  }
+
+  /* ================= REORDER COLUMNS ================= */
+
+  function reorderColumns(oldIndex: number, newIndex: number) {
+    setBoard((prev) => {
+      const newColumns = [...prev.columns];
+      const [removed] = newColumns.splice(oldIndex, 1);
+      newColumns.splice(newIndex, 0, removed);
+
+      return {
+        ...prev,
+        columns: newColumns,
+      };
+    });
+  }
+
+  /* ================= REORDER CARDS ================= */
+
+  function reorderCards(columnId: string, oldIndex: number, newIndex: number) {
+    console.log('🔄 reorderCards (local only):', { columnId, oldIndex, newIndex });
+
+    // Ambil snapshot kolom saat ini
+    const column = board.columns.find((col) => col.id === columnId);
+    if (!column) return;
+
+    const movedCardId = column.cardIds[oldIndex];
+    if (!movedCardId) return;
+
+    // Hitung urutan baru di kolom tersebut
+    const newCardIds = [...column.cardIds];
+    newCardIds.splice(oldIndex, 1);
+    newCardIds.splice(newIndex, 0, movedCardId);
+
+    setBoard((prev) => {
+      const newColumns = prev.columns.map((col) => {
+        if (col.id === columnId) {
+          return { ...col, cardIds: newCardIds };
+        }
+        return col;
+      });
+
+      return {
+        ...prev,
+        columns: newColumns,
+      };
+    });
+  }
+
   /* ================= API ================= */
 
   return {
     board,
+    isSyncing,
     addCard,
     updateCard,
     removeCard,
     addColumn,
     removeColumn,
+    moveCard,
+    reorderColumns,
+    reorderCards,
+    refreshBoard: loadBoard, // Expose untuk manual refresh
   };
 }

@@ -5,7 +5,7 @@ export type Card = {
   image?: string;
   dueDate?: string;
   labels?: string[];
-  completed?: boolean;
+  completed: boolean;
 };
 
 export type Column = {
