@@ -6,7 +6,7 @@
  * Flow:
  * 1. Backend completes Google OAuth and redirects user to /auth/success
  * 2. This component mounts and calls /api/auth/me to verify authentication
- * 3. If authenticated: store user in context → redirect to /apps/kanban (dashboard)
+ * 3. If authenticated: store user in context → redirect to /app (dashboard)
  * 4. If not authenticated: redirect to /auth/error
  * 
  * IMPORTANT: Frontend does NOT handle Google tokens directly.
@@ -34,7 +34,7 @@ const AuthSuccess = () => {
           setStatus('success');
           // Wait a moment to show success state, then redirect
           setTimeout(() => {
-            navigate('/apps/kanban', { replace: true });
+            navigate('/app', { replace: true });
           }, 1000);
         } else {
           // Authentication failed - redirect to error page

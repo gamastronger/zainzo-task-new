@@ -8,7 +8,7 @@ const GuestGuard = ({ children }: any) => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/apps/kanban', { replace: true });
+      navigate('/app', { replace: true });
     }
   }, [isAuthenticated, navigate]);
 

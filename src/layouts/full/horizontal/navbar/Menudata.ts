@@ -8,7 +8,7 @@ const Menuitems = [
     id: uniqueId(),
     title: 'Kanban',
     icon: IconLayoutKanban,
-    href: '/apps/kanban',
+    href: '/app',
   },
 ];
 export default Menuitems;

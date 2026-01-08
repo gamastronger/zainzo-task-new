@@ -44,12 +44,23 @@ const Router = [
       </AuthGuard>
     ),
     children: [
-      { path: '/appsapps', element: <Navigate to="/apps/kanban" /> },
+      { path: '/appsapps', element: <Navigate to="/app" /> },
       { path: 'sample-page', exact: true, element: <SamplePage /> },
-      { path: 'kanban', exact: true, element: <KanbanPage /> },
+      { path: 'kanban', exact: true, element: <Navigate to="/app" /> },
       { path: 'zainzo-book', exact: true, element: <ZainzoBook /> },
       { path: 'zainzo-contact', exact: true, element: <ZainzoContact /> },
       { path: '*', element: <Navigate to="/auth/404" /> },
+    ],
+  },
+  {
+    path: '/app',
+    element: (
+      <AuthGuard>
+        <FullLayout />
+      </AuthGuard>
+    ),
+    children: [
+      { path: '', element: <KanbanPage /> },
     ],
   },
   {

@@ -57,7 +57,7 @@ const useAuth = () => {
         callback: (response) => {
           sessionStorage.setItem(TOKEN_KEY, response.access_token);
           setIsAuthenticated(true);
-          navigate('/apps/kanban', { replace: true });
+          navigate('/app', { replace: true });
         },
       });
 

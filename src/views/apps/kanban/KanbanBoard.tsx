@@ -1,6 +1,6 @@
 // src/views/apps/kanban/KanbanBoard.tsx
 
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography } from '@mui/material';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography, CircularProgress } from '@mui/material';
 import { useKanban } from './kanban.hooks';
 import KanbanColumn from './KanbanColumn';
 import { useEffect, useState } from 'react';
@@ -24,7 +24,7 @@ type KanbanBoardProps = {
 };
 
 export default function KanbanBoard({ onRequestAddColumn }: KanbanBoardProps) {
-  const { board, isSyncing, addCard, updateCard, removeCard, addColumn, removeColumn, moveCard, reorderColumns, reorderCards } = useKanban();
+  const { board, isSyncing, isLoading, columnColors, setColumnColor, addCard, updateCard, removeCard, addColumn, removeColumn, moveCard, reorderColumns, reorderCards } = useKanban();
   const [addOpen, setAddOpen] = useState(false);
   const [newListTitle, setNewListTitle] = useState('');
   const [activeCard, setActiveCard] = useState<Card | null>(null);
@@ -158,6 +158,25 @@ export default function KanbanBoard({ onRequestAddColumn }: KanbanBoardProps) {
 
   return (
     <>
+      {isLoading && (
+        <Box
+          sx={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 2000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'column',
+            bgcolor: 'background.default',
+          }}
+        >
+          <CircularProgress size={56} />
+          <Typography variant="body1" sx={{ mt: 2 }} color="textSecondary">
+            Memuat Kanban...
+          </Typography>
+        </Box>
+      )}
       {isSyncing && (
         <Box 
           sx={{ 
@@ -204,6 +223,7 @@ export default function KanbanBoard({ onRequestAddColumn }: KanbanBoardProps) {
                   column={col}
                   cards={activeCards}
                   completedCards={completedCards}
+                  columnColor={columnColors[col.id]}
                   onAddCard={async (columnId, card) => {
                     console.log('🟢 KanbanBoard onAddCard called:', { columnId, card });
                     await addCard(columnId, card);
@@ -211,6 +231,7 @@ export default function KanbanBoard({ onRequestAddColumn }: KanbanBoardProps) {
                   onUpdateCard={updateCard}
                   onRemoveCard={removeCard}
                   onRemoveColumn={removeColumn}
+                  onSetColumnColor={setColumnColor}
                 />
               );
             })}

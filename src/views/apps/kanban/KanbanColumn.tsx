@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -16,6 +16,7 @@ import {
   Collapse,
   // Divider,
   Checkbox,
+  Popover,
 } from '@mui/material';
 import { IconDotsVertical, IconPlus, IconTrash, IconChevronDown, IconChevronRight } from '@tabler/icons-react';
 import { useSortable } from '@dnd-kit/sortable';
@@ -24,18 +25,22 @@ import { CSS } from '@dnd-kit/utilities';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Card, Column } from './kanban.types';
 import KanbanCard from './KanbanCard';
+import PaintbrushIcon from 'src/assets/images/svgs/paintbrush.svg';
+
 
 type KanbanColumnProps = {
   column: Column;
   cards: Card[];
   completedCards?: Card[];
+  columnColor?: string;
   onAddCard: (columnId: string, card: Omit<Card, 'id'>) => Promise<void>;
   onUpdateCard: (cardId: string, updates: Partial<Card>) => void;
   onRemoveCard: (cardId: string) => void;
   onRemoveColumn: (columnId: string) => void;
+  onSetColumnColor?: (columnId: string, color: string) => void;
 };
 
-const KanbanColumn = ({ column, cards, completedCards = [], onAddCard, onUpdateCard, onRemoveCard, onRemoveColumn }: KanbanColumnProps) => {
+const KanbanColumn = ({ column, cards, completedCards = [], columnColor, onAddCard, onUpdateCard, onRemoveCard, onRemoveColumn, onSetColumnColor }: KanbanColumnProps) => {
   const theme = useTheme();
   const {
     attributes,
@@ -63,6 +68,7 @@ const KanbanColumn = ({ column, cards, completedCards = [], onAddCard, onUpdateC
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [completedExpanded, setCompletedExpanded] = useState(false);
+  const [colorAnchorEl, setColorAnchorEl] = useState<HTMLElement | null>(null);
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -112,15 +118,36 @@ const KanbanColumn = ({ column, cards, completedCards = [], onAddCard, onUpdateC
     onUpdateCard(cardId, { completed: false });
   };
 
-  // Warna background sesuai kolom dari Figma
-  const getColumnColor = () => {
+  // Default colors by name (fallback) — light pastel
+  const getDefaultColumnColor = () => {
     const title = column.title.toLowerCase();
-    if (title.includes('todo')) return '#f2e7feff';
-    if (title.includes('progress')) return '#d8e5ffff';
-    if (title.includes('pending')) return 'rgba(255, 248, 216, 1)';
-    if (title.includes('done')) return '#daffe9ff';
-    // Default untuk kolom bebas / lainnya
-    return '#dfdfdfff';
+    if (title.includes('todo')) return '#F2E7FE';
+    if (title.includes('progress')) return '#D8E5FF';
+    if (title.includes('pending')) return '#FFF8D8';
+    if (title.includes('done')) return '#DAFFEA';
+    return '#EDEFF2';
+  };
+
+  const bgColor = useMemo(() => columnColor || getDefaultColumnColor(), [columnColor, column.title]);
+
+  const pastelPalette = [
+    '#F2E7FE', // soft purple 
+    '#E3F2FD', // soft blue
+    '#E8F5E9', // soft green
+    '#FFF8E1', // soft yellow
+    '#FCE4EC', // soft pink
+    '#E0F7FA', // soft cyan
+    '#F3E5F5', // soft violet
+    '#FFF3E0', // soft orange
+    '#EDE7F6', // soft indigo
+    '#ECEFF1', // soft gray
+  ];
+
+  const handleOpenColor = (anchor: HTMLElement) => setColorAnchorEl(anchor);
+  const handleCloseColor = () => setColorAnchorEl(null);
+  const handleSelectColor = (color: string) => {
+    onSetColumnColor?.(column.id, color);
+    handleCloseColor();
   };
 
   return (
@@ -130,7 +157,7 @@ const KanbanColumn = ({ column, cards, completedCards = [], onAddCard, onUpdateC
       sx={{
         minWidth: { xs: 260, sm: 300, md: 320 },
         width: { xs: 260, sm: 300, md: 320 },
-        backgroundColor: getColumnColor(),
+        backgroundColor: bgColor,
         borderRadius: { xs: 2, sm: 3 },
         p: { xs: 1.5, sm: 2 },
         border: 'none',
@@ -402,6 +429,25 @@ const KanbanColumn = ({ column, cards, completedCards = [], onAddCard, onUpdateC
 
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
         <MenuItem
+          onClick={(e) => {
+            setAnchorEl(null);
+            handleOpenColor(e.currentTarget as HTMLElement);
+          }}
+        >
+          <Stack direction="row" spacing={1.2} alignItems="center">
+            <img
+              src={PaintbrushIcon}
+              alt="Set Color"
+              width={18}
+              height={18}
+              style={{ display: 'block' }}
+            />
+            <span>Set Color</span>
+          </Stack>
+        </MenuItem>
+
+
+        <MenuItem
           onClick={() => {
             setAnchorEl(null);
             if (window.confirm(`Delete column "${column.title}" and its cards?`)) {
@@ -415,6 +461,33 @@ const KanbanColumn = ({ column, cards, completedCards = [], onAddCard, onUpdateC
           </Stack>
         </MenuItem>
       </Menu>
+
+      <Popover
+        open={Boolean(colorAnchorEl)}
+        anchorEl={colorAnchorEl}
+        onClose={handleCloseColor}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+        PaperProps={{ sx: { p: 1, borderRadius: 2 } }}
+      >
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 28px)', gap: 1 }}>
+          {pastelPalette.map((c) => (
+            <Box
+              key={c}
+              onClick={() => handleSelectColor(c)}
+              sx={{
+                width: 28,
+                height: 28,
+                borderRadius: 1,
+                bgcolor: c,
+                border: '1px solid rgba(0,0,0,0.1)',
+                cursor: 'pointer',
+                ':hover': { boxShadow: '0 0 0 2px rgba(0,0,0,0.08) inset' },
+              }}
+            />
+          ))}
+        </Box>
+      </Popover>
 
       <Dialog open={addOpen} onClose={() => setAddOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Add Card</DialogTitle>

@@ -44,6 +44,8 @@ export function useKanban() {
     cards: {},
   });
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [columnColors, setColumnColors] = useState<Record<string, string>>({});
 
   /* ================= LOAD ================= */
 
@@ -66,6 +68,7 @@ export function useKanban() {
 
   async function loadBoard() {
     try {
+      setIsLoading(true);
       const lists = await fetchTaskLists();
 
       const columns: Column[] = [];
@@ -103,8 +106,24 @@ export function useKanban() {
         completedCards: Object.values(cards).filter(c => c.completed).length
       });
       setBoard({ columns, cards });
+
+      // Load persisted colors and keep only for existing columns
+      try {
+        const raw = localStorage.getItem('kanban_column_colors');
+        const persisted: Record<string, string> = raw ? JSON.parse(raw) : {};
+        const filtered: Record<string, string> = {};
+        for (const col of columns) {
+          if (persisted[col.id]) filtered[col.id] = persisted[col.id];
+        }
+        setColumnColors(filtered);
+      } catch (e) {
+        console.warn('Failed to load column colors:', e);
+        setColumnColors({});
+      }
     } catch (err) {
       console.error('Gagal load Google Tasks', err);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -472,11 +491,26 @@ export function useKanban() {
     });
   }
 
+  function setColumnColor(columnId: string, color: string) {
+    setColumnColors((prev) => {
+      const next = { ...prev, [columnId]: color };
+      try {
+        localStorage.setItem('kanban_column_colors', JSON.stringify(next));
+      } catch (e) {
+        console.warn('Failed to persist column colors:', e);
+      }
+      return next;
+    });
+  }
+
   /* ================= API ================= */
 
   return {
     board,
     isSyncing,
+    isLoading,
+    columnColors,
+    setColumnColor,
     addCard,
     updateCard,
     removeCard,

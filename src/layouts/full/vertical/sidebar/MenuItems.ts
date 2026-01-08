@@ -1,20 +1,22 @@
 import { uniqueId } from 'lodash';
+import React from 'react';
+import { IconLayoutKanban } from '@tabler/icons-react';
 
-interface MenuitemsType {
-  [x: string]: any;
+export type SidebarIcon = React.FC<React.SVGProps<SVGSVGElement>>;
+
+export interface MenuitemsType {
   id?: string;
   navlabel?: boolean;
   subheader?: string;
   title?: string;
-  icon?: any;
+  icon?: SidebarIcon;
   href?: string;
   children?: MenuitemsType[];
   chip?: string;
-  chipColor?: string;
-  variant?: string;
+  chipColor?: 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
+  variant?: 'filled' | 'outlined';
   external?: boolean;
 }
-import { IconLayoutKanban } from '@tabler/icons-react';
 
 const Menuitems: MenuitemsType[] = [
   {
@@ -25,7 +27,7 @@ const Menuitems: MenuitemsType[] = [
     id: uniqueId(),
     title: 'Kanban',
     icon: IconLayoutKanban,
-    href: '/apps/kanban',
+    href: '/app',
   },
 ];
 
