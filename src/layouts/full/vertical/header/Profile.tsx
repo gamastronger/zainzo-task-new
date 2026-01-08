@@ -10,14 +10,29 @@ import { Stack } from '@mui/system';
 
 import useAuth from 'src/guards/authGuard/UseAuth';
 
+type StoredUser = { name?: string; email?: string; picture?: string } | null;
+
+function getStoredUser(): StoredUser {
+  try {
+    if (typeof window === 'undefined') return null;
+    const raw = sessionStorage.getItem('google_user');
+    return raw ? (JSON.parse(raw) as StoredUser) : null;
+  } catch {
+    return null;
+  }
+}
+
 const Profile = () => {
   const [anchorEl2, setAnchorEl2] = useState<null | HTMLElement>(null);
   const { logout, user } = useAuth();
 
+  // Prefer context user; fallback to sessionStorage cached user
+  const effectiveUser = user ?? getStoredUser();
+
   // Extract user data
-  const userName = user?.name || user?.email?.split('@')[0] || 'User';
-  const userEmail = user?.email || 'user@example.com';
-  const userAvatar = user?.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=5D87FF&color=fff&size=128`;
+  const userName = effectiveUser?.name || effectiveUser?.email?.split('@')[0] || 'User';
+  const userEmail = effectiveUser?.email || 'user@example.com';
+  const userAvatar = effectiveUser?.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=5D87FF&color=fff&size=128`;
   const userRole = 'Google User';
 
   const handleClick2 = (event: React.MouseEvent<HTMLElement>) => {

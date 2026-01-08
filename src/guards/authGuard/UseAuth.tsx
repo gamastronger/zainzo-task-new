@@ -28,6 +28,7 @@ declare global {
 
 const CLIENT_ID = '392300282718-pdm00rrj454sd6en340spphfpgk9oepk.apps.googleusercontent.com';
 const TOKEN_KEY = 'google_token';
+const USER_KEY = 'google_user';
 
 const useAuth = () => {
   const navigate = useNavigate();
@@ -41,6 +42,7 @@ const useAuth = () => {
   useEffect(() => {
     authEvents.logout = () => {
       sessionStorage.removeItem(TOKEN_KEY);
+      sessionStorage.removeItem(USER_KEY);
       setIsAuthenticated(false);
       navigate('/auth/login', { replace: true });
     };
@@ -53,10 +55,23 @@ const useAuth = () => {
     tokenClientRef.current =
       window.google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
-        scope: 'https://www.googleapis.com/auth/tasks',
-        callback: (response) => {
+        scope: 'openid email profile https://www.googleapis.com/auth/tasks',
+        callback: async (response) => {
           sessionStorage.setItem(TOKEN_KEY, response.access_token);
           setIsAuthenticated(true);
+          try {
+            const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+              headers: { Authorization: `Bearer ${response.access_token}` },
+            });
+            if (res.ok) {
+              const info = (await res.json()) as { name?: string; email?: string; picture?: string };
+              const userData = { name: info.name, email: info.email, picture: info.picture };
+              setUser(userData);
+              sessionStorage.setItem(USER_KEY, JSON.stringify(userData));
+            }
+          } catch (e) {
+            console.warn('Failed to fetch Google userinfo', e);
+          }
           navigate('/app', { replace: true });
         },
       });
@@ -64,6 +79,14 @@ const useAuth = () => {
     // cek token saat refresh
     const token = sessionStorage.getItem(TOKEN_KEY);
     setIsAuthenticated(!!token);
+    const cached = sessionStorage.getItem(USER_KEY);
+    if (cached) {
+      try {
+        setUser(JSON.parse(cached));
+      } catch {
+        // ignore
+      }
+    }
     setIsInitialized(true);
   }, [navigate]);
 
@@ -76,12 +99,29 @@ const useAuth = () => {
       // Verify authentication (in a real app, this would call your backend)
       const token = sessionStorage.getItem(TOKEN_KEY);
       if (token) {
-        // In a real implementation, decode the token or fetch user info
-        // For now, set a basic user object
-        setUser({
-          email: 'user@example.com',
-          name: 'User'
-        });
+        // Use cached user if available, else fetch from Google
+        const cached = sessionStorage.getItem(USER_KEY);
+        if (cached) {
+          try {
+            setUser(JSON.parse(cached));
+          } catch {
+            // ignore
+          }
+        } else {
+          try {
+            const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            if (res.ok) {
+              const info = (await res.json()) as { name?: string; email?: string; picture?: string };
+              const userData = { name: info.name, email: info.email, picture: info.picture };
+              setUser(userData);
+              sessionStorage.setItem(USER_KEY, JSON.stringify(userData));
+            }
+          } catch (e) {
+            console.warn('Failed to fetch Google userinfo', e);
+          }
+        }
         setIsAuthenticated(true);
         return true;
       }
