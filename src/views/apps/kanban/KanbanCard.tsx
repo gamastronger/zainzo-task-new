@@ -512,11 +512,6 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
               onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
             />
             <TextField
-              label="Image URL"
-              value={form.image}
-              onChange={(event) => setForm((prev) => ({ ...prev, image: event.target.value }))}
-            />
-            <TextField
               label="Due Date"
               type="date"
               InputLabelProps={{ shrink: true }}

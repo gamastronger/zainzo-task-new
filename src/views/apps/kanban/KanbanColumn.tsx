@@ -427,6 +427,18 @@ const KanbanColumn = ({ column, cards, completedCards = [], columnColor, onAddCa
                       </Typography>
                     )}
                   </Box>
+                  <IconButton
+                    size="small"
+                    aria-label="Delete task"
+                    onClick={() => onRemoveCard(card.id)}
+                    sx={{
+                      ml: 0.75,
+                      color: 'text.secondary',
+                      '&:hover': { color: 'error.main', bgcolor: 'transparent' },
+                    }}
+                  >
+                    <IconTrash size={16} />
+                  </IconButton>
                 </Box>
               ))}
             </Box>
