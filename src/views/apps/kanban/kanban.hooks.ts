@@ -52,20 +52,9 @@ export function useKanban() {
   /* ================= LOAD ================= */
 
   useEffect(() => {
+    // Load board once on mount; do not auto-refresh on tab change
+    // so user state stays when switching tabs.
     loadBoard();
-    
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        console.log('🔄 Tab active, auto refreshing board...');
-        loadBoard();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
   }, []);
 
   async function loadBoard() {
@@ -201,7 +190,9 @@ export function useKanban() {
             unread: true,
           })
         );
-      } catch {}
+      } catch (e) {
+        console.warn('Failed to push inbox notification for created task', e);
+      }
 
       // Parse kembali notes untuk extract metadata
       const { description, labels, image } = parseTaskNotes(task.notes);
@@ -289,7 +280,9 @@ export function useKanban() {
                 unread: true,
               })
             );
-          } catch {}
+          } catch (e) {
+            console.warn('Failed to push inbox notification for completed task', e);
+          }
         }
       }
 
@@ -414,15 +407,21 @@ export function useKanban() {
       console.log('✅ Deleted from old tasklist');
       
       // 2. Create in new tasklist dengan data yang sama
-      const taskData = {
+      // Build proper payload with required title field
+      const taskPayload: { title: string; notes?: string; due?: string } = {
         title: card.title,
-        notes: card.description || undefined,
-        due: card.dueDate || undefined,
-        status: card.completed ? 'completed' : 'needsAction',
-      } as Partial<GoogleTask>;
+      };
       
-      console.log('📤 Creating task in new tasklist with data:', taskData);
-      const newTask = await createTask(toColumnId, taskData as any);
+      if (card.description) {
+        taskPayload.notes = card.description;
+      }
+      
+      if (card.dueDate) {
+        taskPayload.due = card.dueDate;
+      }
+      
+      console.log('📤 Creating task in new tasklist with data:', taskPayload);
+      const newTask = await createTask(toColumnId, taskPayload);
       console.log('✅ Created in new tasklist:', { id: newTask?.id, fullTask: newTask });
       
       if (!newTask || !newTask.id) {
@@ -443,7 +442,9 @@ export function useKanban() {
             unread: true,
           })
         );
-      } catch {}
+      } catch (e) {
+        console.warn('Failed to push inbox notification for moved task', e);
+      }
 
       // Update state lokal agar memakai ID task baru dari Google
       if (newTask.id !== cardId) {
@@ -574,7 +575,9 @@ export function useKanban() {
                 unread: true,
               })
             );
-          } catch {}
+          } catch (e) {
+            console.warn('Failed to push inbox notification for due/overdue task', e);
+          }
         }
       }
     }

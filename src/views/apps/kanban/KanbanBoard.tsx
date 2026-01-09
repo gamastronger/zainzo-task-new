@@ -193,7 +193,7 @@ export default function KanbanBoard({ onRequestAddColumn }: KanbanBoardProps) {
             alignItems: 'center',
             justifyContent: 'center',
             flexDirection: 'column',
-            bgcolor: 'background.default',
+            bgcolor: 'rgb(244, 246, 249)',
           }}
         >
           <CircularProgress size={56} />
@@ -230,7 +230,17 @@ export default function KanbanBoard({ onRequestAddColumn }: KanbanBoardProps) {
         onDragEnd={handleDragEnd}
       >
         <SortableContext items={board.columns.map((col) => col.id)} strategy={horizontalListSortingStrategy}>
-          <Box display="flex" gap={2} p={2} sx={{ overflowX: 'auto', height: '100%' }}>
+          <Box
+            display="flex"
+            gap={2}
+            p={2}
+            sx={{
+              overflowX: 'auto',
+              height: '100%',
+              bgcolor: 'rgb(244, 246, 249)', // hitam modern, bukan hitam mati
+            }}
+          >
+
             {board.columns.map((col) => {
               const allCards = col.cardIds.map((id) => board.cards[id]).filter(Boolean);
               const activeCards = allCards.filter(card => !card.completed);
