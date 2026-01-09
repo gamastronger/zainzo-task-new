@@ -10,6 +10,7 @@ import { ReactComponent as ZainzoLogo } from 'src/assets/images/svgs/zainzoconta
 import Notifications from './Notification';
 import Profile from './Profile';
 import { AppState } from 'src/store/Store';
+import GridMenu from 'src/layouts/full/shared/GridMenu';
 
 const Header = () => {
   const handleAddList = () => {
@@ -123,6 +124,8 @@ const Header = () => {
               </svg>
             </Box>
           </IconButton>
+            {/* 9-dots Grid Menu */}
+            <GridMenu />
           <Notifications />
           <Profile />
         </Stack>
