@@ -64,9 +64,10 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
     if (Number.isNaN(d.getTime())) {
       return '';
     }
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
+    // Use UTC methods to avoid timezone conversion
+    const yyyy = d.getUTCFullYear();
+    const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const dd = String(d.getUTCDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
   };
 
@@ -538,7 +539,10 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
                 if (!dateStr) return '';
                 const [y, m, d] = dateStr.split('-').map((v) => parseInt(v, 10));
                 if (!y || !m || !d) return '';
-                const dt = new Date(y, m - 1, d, 0, 0, 0, 0);
+                
+                // Use Date.UTC to avoid timezone conversion issues
+                const utcTimestamp = Date.UTC(y, m - 1, d, 0, 0, 0, 0);
+                const dt = new Date(utcTimestamp);
                 return dt.toISOString();
               };
 

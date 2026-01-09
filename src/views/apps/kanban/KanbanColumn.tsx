@@ -88,7 +88,11 @@ const KanbanColumn = ({ column, cards, completedCards = [], columnColor, onAddCa
         if (!dateStr) return undefined;
         const [y, m, d] = dateStr.split('-').map((v) => parseInt(v, 10));
         if (!y || !m || !d) return undefined;
-        const dt = new Date(y, m - 1, d, 0, 0, 0, 0);
+        
+        // Use Date.UTC to avoid timezone conversion issues
+        // This creates a UTC timestamp at midnight UTC for the specified date
+        const utcTimestamp = Date.UTC(y, m - 1, d, 0, 0, 0, 0);
+        const dt = new Date(utcTimestamp);
         return dt.toISOString();
       };
 
