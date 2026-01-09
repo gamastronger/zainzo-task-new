@@ -155,6 +155,8 @@ const KanbanColumn = ({ column, cards, completedCards = [], columnColor, onAddCa
       ref={setNodeRef}
       style={style}
       sx={{
+        // For deep-link focus from Inbox
+        '&': { },
         minWidth: { xs: 260, sm: 300, md: 320 },
         width: { xs: 260, sm: 300, md: 320 },
         backgroundColor: bgColor,
@@ -169,6 +171,7 @@ const KanbanColumn = ({ column, cards, completedCards = [], columnColor, onAddCa
         display: 'flex',
         flexDirection: 'column',
       }}
+      data-column-id={column.id}
     >
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: { xs: 1.5, sm: 2 } }}>
         <Box

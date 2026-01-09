@@ -1,7 +1,8 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Menu, Avatar, Typography, Divider, Button, IconButton } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import * as dropdownData from './data';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -10,11 +11,25 @@ import { Stack } from '@mui/system';
 
 import useAuth from 'src/guards/authGuard/UseAuth';
 
-type StoredUser = { name?: string; email?: string; picture?: string } | null;
+type StoredUser = { name?: string; email?: string; picture?: string; jobTitle?: string } | null;
 
 function getStoredUser(): StoredUser {
   try {
     if (typeof window === 'undefined') return null;
+    
+    // Prioritaskan localStorage (user_profile_data) untuk data yang sudah diedit
+    const profileData = localStorage.getItem('user_profile_data');
+    if (profileData) {
+      const parsed = JSON.parse(profileData);
+      return {
+        name: parsed.name,
+        email: parsed.email,
+        picture: parsed.picture,
+        jobTitle: parsed.jobTitle,
+      };
+    }
+    
+    // Fallback ke sessionStorage
     const raw = sessionStorage.getItem('google_user');
     return raw ? (JSON.parse(raw) as StoredUser) : null;
   } catch {
@@ -25,15 +40,39 @@ function getStoredUser(): StoredUser {
 const Profile = () => {
   const [anchorEl2, setAnchorEl2] = useState<null | HTMLElement>(null);
   const { logout, user } = useAuth();
+  const navigate = useNavigate();
+  const [userData, setUserData] = useState<StoredUser>(user ?? getStoredUser());
 
-  // Prefer context user; fallback to sessionStorage cached user
-  const effectiveUser = user ?? getStoredUser();
+  // Update userData ketika user context berubah atau storage berubah
+  useEffect(() => {
+    const updateUserData = () => {
+      const storedUser = getStoredUser();
+      setUserData(user ?? storedUser);
+    };
 
-  // Extract user data
-  const userName = effectiveUser?.name || effectiveUser?.email?.split('@')[0] || 'User';
-  const userEmail = effectiveUser?.email || 'user@example.com';
-  const userAvatar = effectiveUser?.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=5D87FF&color=fff&size=128`;
-  const userRole = 'Google User';
+    // Update saat mount
+    updateUserData();
+
+    // Listen untuk storage changes
+    window.addEventListener('storage', updateUserData);
+    
+    // Custom event listener untuk update dari user profile page
+    const handleProfileUpdate = () => {
+      updateUserData();
+    };
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+
+    return () => {
+      window.removeEventListener('storage', updateUserData);
+      window.removeEventListener('profileUpdated', handleProfileUpdate);
+    };
+  }, [user]);
+
+  // Extract user data dari state yang reactive
+  const userName = userData?.name || userData?.email?.split('@')[0] || 'User';
+  const userEmail = userData?.email || 'user@example.com';
+  const userAvatar = userData?.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=5D87FF&color=fff&size=128`;
+  const userRole = userData?.jobTitle || 'Google User';
 
   const handleClick2 = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl2(event.currentTarget);
@@ -126,54 +165,67 @@ const Profile = () => {
         </Stack>
         <Divider />
         {dropdownData.profile.map((profile) => (
-          <Box key={profile.title}>
-            <Box sx={{ py: 2, px: 0 }} className="hover-text-primary">
-              <Stack direction="row" spacing={2}>
-                <Box
-                  width="45px"
-                  height="45px"
-                  bgcolor="primary.light"
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
+          <Button
+            key={profile.title}
+            fullWidth
+            onClick={() => {
+              handleClose2();
+              navigate(profile.href);
+            }}
+            sx={{
+              py: 2,
+              px: 0,
+              justifyContent: 'flex-start',
+              textTransform: 'none',
+              '&:hover': {
+                backgroundColor: 'action.hover',
+              },
+            }}
+          >
+            <Stack direction="row" spacing={2}>
+              <Box
+                width="45px"
+                height="45px"
+                bgcolor="primary.light"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+              >
+                <Avatar
+                  src={profile.icon}
+                  alt={profile.icon}
+                  sx={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: 0,
+                  }}
+                />
+              </Box>
+              <Box sx={{ textAlign: 'left' }}>
+                <Typography
+                  variant="subtitle2"
+                  fontWeight={600}
+                  color="textPrimary"
+                  noWrap
+                  sx={{
+                    width: '240px',
+                  }}
                 >
-                  <Avatar
-                    src={profile.icon}
-                    alt={profile.icon}
-                    sx={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: 0,
-                    }}
-                  />
-                </Box>
-                <Box>
-                  <Typography
-                    variant="subtitle2"
-                    fontWeight={600}
-                    color="textPrimary"
-                    className="text-hover"
-                    noWrap
-                    sx={{
-                      width: '240px',
-                    }}
-                  >
-                    {profile.title}
-                  </Typography>
-                  <Typography
-                    color="textSecondary"
-                    variant="subtitle2"
-                    sx={{
-                      width: '240px',
-                    }}
-                    noWrap
-                  >
-                    {profile.subtitle}
-                  </Typography>
-                </Box>
-              </Stack>
-            </Box>
-          </Box>
+                  {profile.title}
+                </Typography>
+                <Typography
+                  color="textSecondary"
+                  variant="subtitle2"
+                  sx={{
+                    width: '240px',
+                  }}
+                  noWrap
+                >
+                  {profile.subtitle}
+                </Typography>
+              </Box>
+            </Stack>
+          </Button>
         ))}
         <Box mt={2}>
           <Button variant="contained" color="primary" fullWidth onClick={handleLogout}>

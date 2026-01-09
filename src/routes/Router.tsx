@@ -18,6 +18,9 @@ const ZainzoContact = Loadable(lazy(() => import('../views/zainzo-products/Zainz
 const PrivacyPolicy = Loadable(lazy(() => import('../views/PrivacyPolicy')));
 const LandingPage = Loadable(lazy(() => import('../views/LandingPage')));
 const Error = Loadable(lazy(() => import('../views/authentication/Error')));
+const InboxPage = Loadable(lazy(() => import('../views/inbox/InboxPage')));
+const UserProfile = Loadable(lazy(() => import('../views/profile/UserProfile')));
+const MyTasksPage = Loadable(lazy(() => import('../views/tasks/MyTasksPage')));
 
 // authentication
 const Login = Loadable(lazy(() => import('../views/authentication/auth1/Login')));
@@ -61,6 +64,19 @@ const Router = [
     ),
     children: [
       { path: '', element: <KanbanPage /> },
+      { path: 'inbox', element: <InboxPage /> },
+      { path: 'tasks', element: <MyTasksPage /> },
+    ],
+  },
+  {
+    path: 'app/user-profile',
+    element: (
+      <AuthGuard>
+        <FullLayout />
+      </AuthGuard>
+    ),
+    children: [
+      { path: '', element: <UserProfile /> },
     ],
   },
   {

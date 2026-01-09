@@ -157,6 +157,7 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
             transform: isChecking ? 'scale(0.98)' : 'scale(1)',
           },
         }}
+        data-card-id={card.id}
       >
         {/* Celebration overlay with confetti particles */}
         {celebrating && (

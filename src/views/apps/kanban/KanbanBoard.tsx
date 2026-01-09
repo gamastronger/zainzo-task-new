@@ -1,6 +1,7 @@
 // src/views/apps/kanban/KanbanBoard.tsx
 
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography, CircularProgress } from '@mui/material';
+import { useLocation } from 'react-router-dom';
 import { useKanban } from './kanban.hooks';
 import KanbanColumn from './KanbanColumn';
 import { useEffect, useState } from 'react';
@@ -36,6 +37,30 @@ export default function KanbanBoard({ onRequestAddColumn }: KanbanBoardProps) {
       },
     })
   );
+
+  // Handle deep-link focus from Inbox via query params ?col= & task=
+  const location = useLocation();
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const taskId = params.get('task');
+    const colId = params.get('col');
+    const highlight = (el: Element | null) => {
+      if (!el) return;
+      (el as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+      const original = (el as HTMLElement).style.boxShadow;
+      (el as HTMLElement).style.boxShadow = '0 0 0 3px rgba(25,118,210,0.5)';
+      setTimeout(() => {
+        (el as HTMLElement).style.boxShadow = original;
+      }, 1500);
+    };
+    if (taskId) {
+      const el = document.querySelector(`[data-card-id="${taskId}"]`);
+      highlight(el);
+    } else if (colId) {
+      const el = document.querySelector(`[data-column-id="${colId}"]`);
+      highlight(el);
+    }
+  }, [location.search]);
 
   useEffect(() => {
     if (onRequestAddColumn) {

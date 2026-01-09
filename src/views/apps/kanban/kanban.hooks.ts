@@ -10,6 +10,8 @@ import {
 } from 'src/api/googleTasks';
 import { queueTaskPatch } from 'src/utils/googleTasksQueue';
 import { Card, Column, BoardData } from './kanban.types';
+import { dispatch } from 'src/store/Store';
+import { inboxActions } from 'src/store/inbox/InboxSlice';
 
 /* ================= HELPERS ================= */
 
@@ -185,6 +187,22 @@ export function useKanban() {
       const task = await createTask(columnId, taskPayload);
       console.log('✅ Created task successfully:', task);
 
+      // Inbox: task created
+      try {
+        dispatch(
+          inboxActions.upsert({
+            id: `created:${task.id}`,
+            type: 'created',
+            title: `Task created: ${task.title}`,
+            message: `Added to a list`,
+            taskId: task.id!,
+            columnId: columnId,
+            timestamp: Date.now(),
+            unread: true,
+          })
+        );
+      } catch {}
+
       // Parse kembali notes untuk extract metadata
       const { description, labels, image } = parseTaskNotes(task.notes);
 
@@ -256,6 +274,23 @@ export function useKanban() {
           }),
           ...(duePatch !== undefined && { due: duePatch }),
         });
+
+        // Inbox: completed event
+        if (updates.completed === true) {
+          try {
+            dispatch(
+              inboxActions.upsert({
+                id: `completed:${cardId}:${new Date().toISOString()}`,
+                type: 'completed',
+                title: `Task completed: ${updatedCard.title}`,
+                taskId: cardId,
+                columnId: column.id,
+                timestamp: Date.now(),
+                unread: true,
+              })
+            );
+          } catch {}
+        }
       }
 
       return {
@@ -394,6 +429,22 @@ export function useKanban() {
         throw new Error('Failed to create task in new tasklist - no ID returned');
       }
 
+      // Inbox: moved event
+      try {
+        dispatch(
+          inboxActions.upsert({
+            id: `moved:${cardId}:${fromColumnId}->${toColumnId}:${Date.now()}`,
+            type: 'moved',
+            title: `Moved task: ${card.title}`,
+            message: 'Task moved between lists',
+            taskId: newTask.id,
+            columnId: toColumnId,
+            timestamp: Date.now(),
+            unread: true,
+          })
+        );
+      } catch {}
+
       // Update state lokal agar memakai ID task baru dari Google
       if (newTask.id !== cardId) {
         console.log('🔄 Updating local card ID from', cardId, 'to', newTask.id);
@@ -490,6 +541,44 @@ export function useKanban() {
       };
     });
   }
+
+  // Generate due/overdue notifications on load (de-duplicated by id per day)
+  useEffect(() => {
+    if (board.columns.length === 0) return;
+
+    const today = new Date();
+    const toDateKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const todayKey = toDateKey(today);
+
+    for (const col of board.columns) {
+      for (const cid of col.cardIds) {
+        const c = board.cards[cid];
+        if (!c || !c.dueDate || c.completed) continue;
+        const due = new Date(c.dueDate);
+        if (isNaN(due.getTime())) continue;
+        const dueKey = toDateKey(due);
+        const isToday = dueKey === todayKey;
+        const isOverdue = due < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        if (isToday || isOverdue) {
+          const type = isToday ? 'due' : 'overdue';
+          const id = `${type}:${cid}:${dueKey}`;
+          try {
+            dispatch(
+              inboxActions.upsert({
+                id,
+                type,
+                title: `${isToday ? 'Due today' : 'Overdue'}: ${c.title}`,
+                taskId: cid,
+                columnId: col.id,
+                timestamp: Date.now(),
+                unread: true,
+              })
+            );
+          } catch {}
+        }
+      }
+    }
+  }, [board.columns, board.cards]);
 
   function setColumnColor(columnId: string, color: string) {
     setColumnColors((prev) => {

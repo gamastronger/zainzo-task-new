@@ -1,5 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import CustomizerReducer from './customizer/CustomizerSlice';
+import InboxReducer from './inbox/InboxSlice';
 import { combineReducers } from 'redux';
 import {
   useDispatch as useAppDispatch,
@@ -10,11 +11,13 @@ import {
 export const store = configureStore({
   reducer: {
     customizer: CustomizerReducer,
+    inbox: InboxReducer,
   },
 });
 
 const rootReducer = combineReducers({
   customizer: CustomizerReducer,
+  inbox: InboxReducer,
 });
 
 export type AppState = ReturnType<typeof rootReducer>;

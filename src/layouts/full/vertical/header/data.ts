@@ -108,30 +108,27 @@ const messages: messageType[] = [
   },
 ];
 
-//
-// Profile dropdown
-//
 interface ProfileType {
   href: string;
   title: string;
   subtitle: string;
-  icon: any;
+  icon: string;
 }
 const profile: ProfileType[] = [
   {
-    href: '/user-profile',
+    href: '/app/user-profile',
     title: 'My Profile',
     subtitle: 'Account Settings',
     icon: icon1,
   },
   {
-    href: '/apps/email',
+    href: '/app/inbox',
     title: 'My Inbox',
     subtitle: 'Messages & Emails',
     icon: icon2,
   },
   {
-    href: '/apps/notes',
+    href: '/app/tasks',
     title: 'My Tasks',
     subtitle: 'To-do and Daily Tasks',
     icon: icon3,
