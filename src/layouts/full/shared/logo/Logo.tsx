@@ -3,7 +3,7 @@ import { useSelector } from 'src/store/Store';
 import { Link } from 'react-router-dom';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import { ReactComponent as ZainzoLogo } from 'src/assets/images/svgs/zainzocontact.svg';
+import { ReactComponent as ZainzoLogo } from 'src/assets/images/svgs/ztlogo.svg';
 import { styled, Typography } from '@mui/material';
 import { AppState } from 'src/store/Store';
 

@@ -3,8 +3,6 @@ import PageContainer from 'src/components/container/PageContainer';
 import {
   Box,
   Button,
-  Card,
-  CardContent,
   Chip,
   Divider,
   Grid,

@@ -6,11 +6,12 @@ import { useSelector } from 'src/store/Store';
 import { IconPlus } from '@tabler/icons-react';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import { ReactComponent as ZainzoLogo } from 'src/assets/images/svgs/zainzocontact.svg';
+
 import Notifications from './Notification';
 import Profile from './Profile';
 import { AppState } from 'src/store/Store';
 import GridMenu from 'src/layouts/full/shared/GridMenu';
+import Logo from 'src/assets/images/svgs/ztlogo.svg';
 
 const Header = () => {
   const handleAddList = () => {
@@ -55,23 +56,24 @@ const Header = () => {
         {/* Logo and Title */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
           <Box
+            component="img"
+            src={Logo}
+            alt="Zainzo Task Logo"
             sx={{
-              width: { xs: 28, sm: 32 },
               height: { xs: 28, sm: 32 },
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              width: 'auto',
+              display: 'block',
             }}
-          >
-            <ZainzoLogo style={{ width: '100%', height: '100%' }} />
-          </Box>
-          <Typography 
-            variant="h6" 
-            fontWeight={600} 
-            color="text.primary" 
-            sx={{ 
-              fontSize: { xs: '16px', sm: '18px' },
-              display: { xs: 'none', sm: 'block' }
+          />
+          <Typography
+            variant="h6"
+            fontWeight={600}
+            color="text.primary"
+            sx={{
+              fontSize: { xs: '17px', sm: '19px' },
+              display: { xs: 'none', sm: 'block' },
+              lineHeight: 1.3,
+              letterSpacing: 0,
             }}
           >
             Zainzo Task
