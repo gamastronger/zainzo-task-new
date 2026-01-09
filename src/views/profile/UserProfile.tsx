@@ -17,7 +17,8 @@ import {
 } from '@mui/material';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import { IconEdit, IconCheck, IconX, IconMail, IconUser } from '@tabler/icons-react';
+import { IconEdit, IconCheck, IconX, IconMail, IconUser, IconArrowLeft } from '@tabler/icons-react';
+import { useNavigate } from 'react-router-dom';
 
 import useAuth from 'src/guards/authGuard/UseAuth';
 
@@ -37,6 +38,7 @@ interface ProfileData {
 
 const UserProfile: React.FC = () => {
   const auth = useAuth();
+  const navigate = useNavigate();
   let user: GoogleUser | null = auth?.user ?? null;
 
   if (!user) {
@@ -144,9 +146,20 @@ const UserProfile: React.FC = () => {
           >
             <CardContent sx={{ pb: 8 }}>
               <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-                <Typography variant="h4" fontWeight={700}>
-                  My Profile
-                </Typography>
+                <Stack direction="row" spacing={2} alignItems="center">
+                  <Button
+                    variant="text"
+                    color="inherit"
+                    startIcon={<IconArrowLeft size={18} />}
+                    onClick={() => navigate('/app')}
+                    sx={{ color: 'white' }}
+                  >
+                    Back
+                  </Button>
+                  <Typography variant="h4" fontWeight={700}>
+                    My Profile
+                  </Typography>
+                </Stack>
                 <Button
                   variant={isEditing ? 'outlined' : 'contained'}
                   color="inherit"

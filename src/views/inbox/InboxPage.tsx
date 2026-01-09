@@ -5,7 +5,7 @@ import { InboxItem } from 'src/store/inbox/InboxSlice';
 import { useDispatch } from 'src/store/Store';
 import { inboxActions } from 'src/store/inbox/InboxSlice';
 import { Box, Button, Divider, IconButton, List, ListItem, ListItemButton, ListItemText, Stack, Typography } from '@mui/material';
-import { IconCheck, IconCalendar, IconChevronRight, IconCircle, IconInbox, IconListCheck } from '@tabler/icons-react';
+import { IconCheck, IconCalendar, IconChevronRight, IconCircle, IconInbox, IconListCheck, IconArrowLeft } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 import PageContainer from 'src/components/container/PageContainer';
 
@@ -33,6 +33,14 @@ export default function InboxPage() {
   return (
     <PageContainer title="My Inbox" description="Notifications and activity">
       <Box p={{ xs: 2, md: 3 }}>
+        <Button
+          variant="text"
+          startIcon={<IconArrowLeft size={18} />}
+          onClick={() => navigate('/app')}
+          sx={{ mb: 2 }}
+        >
+          Back to Board
+        </Button>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
           <Stack direction="row" spacing={1} alignItems="center">
             <IconInbox size={18} />

@@ -22,6 +22,7 @@ import {
 } from '@mui/material';
 import { useKanban } from 'src/views/apps/kanban/kanban.hooks';
 import { useNavigate } from 'react-router-dom';
+import { IconArrowLeft } from '@tabler/icons-react';
 
 type Filter = 'today' | 'overdue' | 'upcoming' | 'all';
 type SortOrder = 'asc' | 'desc';
@@ -108,6 +109,16 @@ const MyTasksPage: React.FC = () => {
 
   return (
     <PageContainer title="My Tasks" description="Personal aggregated task list">
+      <Box px={{ xs: 2, md: 3 }} pt={2}>
+        <Button
+          variant="text"
+          startIcon={<IconArrowLeft size={18} />}
+          onClick={() => navigate('/app')}
+          sx={{ mb: 2 }}
+        >
+          Back to Board
+        </Button>
+      </Box>
       <Grid container spacing={3}>
         <Grid item xs={12} md={8} lg={7}>
           <Card>
