@@ -11,13 +11,12 @@ import {
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { ReactComponent as GridIcon } from 'src/assets/images/svgs/grid-icon.svg';
-import { useNavigate } from 'react-router-dom';
 
-import ZainzoLogo from 'src/assets/images/logos/zainzo-logo.svg';
+import ZainzoContact from 'src/assets/images/svgs/zainzocontact.svg';
+import ZainzoBook from 'src/assets/images/svgs/zainzobook.svg';
 
 const GridMenu = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const navigate = useNavigate();
   const open = Boolean(anchorEl);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -26,18 +25,20 @@ const GridMenu = () => {
 
   const handleClose = () => setAnchorEl(null);
 
-  const handleNavigate = (path: string) => {
-    navigate(path);
-    handleClose();
-  };
+  const handleExternalRedirect = (url: string) => {
+  window.open(url, '_blank', 'noopener,noreferrer');
+  handleClose();
+};
 
   const MenuCard = ({
     title,
     subtitle,
+    icon,
     onClick,
   }: {
     title: string;
     subtitle: string;
+    icon: string;
     onClick: () => void;
   }) => (
     <MenuItem
@@ -66,11 +67,12 @@ const GridMenu = () => {
             alignItems: 'center',
             justifyContent: 'center',
             bgcolor: 'grey.100',
+            flexShrink: 0,
           }}
         >
           <Box
             component="img"
-            src={ZainzoLogo}
+            src={icon}
             alt={title}
             sx={{ width: 20, height: 20 }}
           />
@@ -117,7 +119,7 @@ const GridMenu = () => {
             p: 1.5,
             width: 260,
             borderRadius: 3,
-            boxShadow: '0px 12px 32px rgba(0,0,0,0.14)',
+            boxShadow: '0 12px 32px rgba(0,0,0,0.14)',
           },
         }}
       >
@@ -132,12 +134,15 @@ const GridMenu = () => {
         <MenuCard
           title="Zainzo Book"
           subtitle="Knowledge & Docs"
-          onClick={() => handleNavigate('/zainzo-book')}
+          icon={ZainzoBook}
+          onClick={() => handleExternalRedirect('https://book.zainzo.com')}
         />
+
         <MenuCard
           title="Zainzo Contact"
           subtitle="Manage Contacts"
-          onClick={() => handleNavigate('/zainzo-contact')}
+          icon={ZainzoContact}
+          onClick={() => handleExternalRedirect('https://contact.zainzo.com')}
         />
       </Menu>
     </>

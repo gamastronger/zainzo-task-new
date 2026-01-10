@@ -168,10 +168,7 @@ const KanbanColumn = ({ column, cards, completedCards = [], columnColor, onAddCa
         p: { xs: 1.5, sm: 2 },
         border: 'none',
         transition: 'all 0.2s ease',
-        boxShadow: isDragging
-  ? '0 12px 32px rgba(0,0,0,0.2), 0 2px 6px rgba(0,0,0,0.08)'
-  : '0 4px 12px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.06)',
-
+        boxShadow: '0 2px 6px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.06)',
         flexShrink: 0,
         height: 'fit-content',
         maxHeight: '100%',

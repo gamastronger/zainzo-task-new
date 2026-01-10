@@ -4,7 +4,7 @@ import React from 'react';
 import { Grid, Box, Typography } from '@mui/material';
 import PageContainer from 'src/components/container/PageContainer';
 import img1 from 'src/assets/images/backgrounds/login-bg.svg';
-import Logo from 'src/layouts/full/shared/logo/Logo';
+import ztLogo from 'src/assets/images/svgs/ztlogo.svg';
 import AuthLogin from '../authForms/AuthLogin';
 
 const Login = () => (
@@ -31,8 +31,25 @@ const Login = () => (
         }}
       >
         <Box position="relative">
-          <Box px={3}>
-            <Logo />
+          <Box px={3} py={2} display="flex" alignItems="center" gap={1}>
+            <img
+              src={ztLogo}
+              alt="Zainzo Task Logo"
+              style={{
+                width: '24px',
+                height: '24px',
+              }}
+            />
+            <Typography
+              variant="h6"
+              fontWeight={600}
+              sx={{
+                fontSize: '1.1rem',
+                color: '#000000',
+              }}
+            >
+              Zainzo Task
+            </Typography>
           </Box>
           <Box
             alignItems="center"

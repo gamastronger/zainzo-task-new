@@ -172,14 +172,15 @@ const MyTasksPage: React.FC = () => {
         }}
       >
         {/* Header */}
-        <Box px={{ xs: 3, md: 4 }} pt={4} pb={3}>
+        <Box px={{ xs: 2, sm: 3, md: 4 }} pt={{ xs: 3, sm: 4 }} pb={3}>
           <Button
             variant="text"
             startIcon={<IconArrowLeft size={18} />}
             onClick={() => navigate('/app')}
             sx={{ 
-              mb: 3,
+              mb: { xs: 2, sm: 3 },
               color: 'text.secondary',
+              fontSize: { xs: '0.875rem', sm: '1rem' },
               '&:hover': {
                 bgcolor: alpha(theme.palette.primary.main, 0.06),
               },
@@ -188,218 +189,121 @@ const MyTasksPage: React.FC = () => {
             Back to Board
           </Button>
           
-          <Box mb={4}>
-            <Typography variant="h3" fontWeight={700} mb={1} letterSpacing={-0.5}>
+          <Box mb={{ xs: 3, sm: 4 }}>
+            <Typography variant="h3" fontWeight={700} mb={1} letterSpacing={-0.5} fontSize={{ xs: '1.75rem', sm: '2.5rem' }}>
               My Tasks
             </Typography>
-            <Typography variant="body1" color="text.secondary">
+            <Typography variant="body1" color="text.secondary" fontSize={{ xs: '0.875rem', sm: '1rem' }}>
               Stay organized and track your progress
             </Typography>
           </Box>
 
           {/* Stats Cards */}
-          <Grid container spacing={2.5}>
-            <Grid item xs={6} md={3}>
-              <Paper 
-                elevation={0}
-                sx={{ 
-                  p: 3,
-                  borderRadius: 3,
-                  bgcolor: 'background.paper',
-                  border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
-                  transition: 'all 0.3s ease',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: `0 12px 24px ${alpha(theme.palette.primary.main, 0.08)}`,
-                    borderColor: alpha(theme.palette.primary.main, 0.2),
-                  },
-                }}
-              >
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <Box
-                    sx={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: 2.5,
-                      bgcolor: alpha(theme.palette.primary.main, 0.08),
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <IconChecklist size={28} color={theme.palette.primary.main} />
-                  </Box>
-                  <Box flex={1}>
-                    <Typography variant="h4" fontWeight={700} mb={0.5} lineHeight={1.2}>
-                      {stats.total}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                      Total Tasks
-                    </Typography>
-                  </Box>
-                </Stack>
-              </Paper>
-            </Grid>
-            
-            <Grid item xs={6} md={3}>
-              <Paper 
-                elevation={0}
-                sx={{ 
-                  p: 3,
-                  borderRadius: 3,
-                  bgcolor: 'background.paper',
-                  border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
-                  transition: 'all 0.3s ease',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: `0 12px 24px ${alpha(theme.palette.success.main, 0.08)}`,
-                    borderColor: alpha(theme.palette.success.main, 0.2),
-                  },
-                }}
-              >
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <Box
-                    sx={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: 2.5,
-                      bgcolor: alpha(theme.palette.success.main, 0.08),
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <IconCheck size={28} color={theme.palette.success.main} />
-                  </Box>
-                  <Box flex={1}>
-                    <Typography variant="h4" fontWeight={700} mb={0.5} lineHeight={1.2}>
-                      {stats.completed}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                      Completed
-                    </Typography>
-                  </Box>
-                </Stack>
-              </Paper>
-            </Grid>
-            
-            <Grid item xs={6} md={3}>
-              <Paper 
-                elevation={0}
-                sx={{ 
-                  p: 3,
-                  borderRadius: 3,
-                  bgcolor: 'background.paper',
-                  border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
-                  transition: 'all 0.3s ease',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: `0 12px 24px ${alpha(theme.palette.warning.main, 0.08)}`,
-                    borderColor: alpha(theme.palette.warning.main, 0.2),
-                  },
-                }}
-              >
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <Box
-                    sx={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: 2.5,
-                      bgcolor: alpha(theme.palette.warning.main, 0.08),
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <IconCalendar size={28} color={theme.palette.warning.main} />
-                  </Box>
-                  <Box flex={1}>
-                    <Typography variant="h4" fontWeight={700} mb={0.5} lineHeight={1.2}>
-                      {stats.today}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                      Due Today
-                    </Typography>
-                  </Box>
-                </Stack>
-              </Paper>
-            </Grid>
-            
-            <Grid item xs={6} md={3}>
-              <Paper 
-                elevation={0}
-                sx={{ 
-                  p: 3,
-                  borderRadius: 3,
-                  bgcolor: 'background.paper',
-                  border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
-                  transition: 'all 0.3s ease',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: `0 12px 24px ${alpha(theme.palette.error.main, 0.08)}`,
-                    borderColor: alpha(theme.palette.error.main, 0.2),
-                  },
-                }}
-              >
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <Box
-                    sx={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: 2.5,
-                      bgcolor: alpha(theme.palette.error.main, 0.08),
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <IconAlertCircle size={28} color={theme.palette.error.main} />
-                  </Box>
-                  <Box flex={1}>
-                    <Typography variant="h4" fontWeight={700} mb={0.5} lineHeight={1.2}>
-                      {stats.overdue}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                      Overdue
-                    </Typography>
-                  </Box>
-                </Stack>
-              </Paper>
-            </Grid>
+          <Grid container spacing={{ xs: 1.5, sm: 2, md: 2.5 }}>
+            {[
+              {
+                label: 'Total Tasks',
+                value: stats.total,
+                icon: <IconChecklist />,
+                color: theme.palette.primary.main,
+              },
+              {
+                label: 'Completed',
+                value: stats.completed,
+                icon: <IconCheck />,
+                color: theme.palette.success.main,
+              },
+              {
+                label: 'Due Today',
+                value: stats.today,
+                icon: <IconCalendar />,
+                color: theme.palette.warning.main,
+              },
+              {
+                label: 'Overdue',
+                value: stats.overdue,
+                icon: <IconAlertCircle />,
+                color: theme.palette.error.main,
+              },
+            ].map((item) => (
+              <Grid item xs={6} md={3} key={item.label}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: { xs: 1.75, sm: 2.5, md: 3 },
+                    borderRadius: { xs: 2, md: 3 },
+                    border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+                    height: '100%',
+                    transition: 'all 0.25s ease',
+                    '&:hover': {
+                      transform: { md: 'translateY(-4px)' },
+                      boxShadow: `0 12px 24px ${alpha(item.color, 0.12)}`,
+                      borderColor: alpha(item.color, 0.25),
+                    },
+                  }}
+                >
+                  <Stack direction="row" spacing={{ xs: 1.25, sm: 2 }} alignItems="flex-start">
+                    {/* ICON */}
+                    <Box
+                      sx={{
+                        width: { xs: 36, sm: 44, md: 56 },
+                        height: { xs: 36, sm: 44, md: 56 },
+                        borderRadius: { xs: 1.5, md: 2.5 },
+                        bgcolor: alpha(item.color, 0.12),
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        '& svg': {
+                          width: { xs: 18, sm: 22, md: 28 },
+                          height: 'auto',
+                          color: item.color,
+                        },
+                      }}
+                    >
+                      {item.icon}
+                    </Box>
+
+                    {/* TEXT */}
+                    <Box>
+                      <Typography
+                        fontWeight={700}
+                        lineHeight={1.1}
+                        fontSize={{ xs: '1.1rem', sm: '1.4rem', md: '2rem' }}
+                      >
+                        {item.value}
+                      </Typography>
+                      <Typography
+                        color="text.secondary"
+                        fontWeight={500}
+                        fontSize={{ xs: '0.7rem', sm: '0.8rem', md: '0.875rem' }}
+                      >
+                        {item.label}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </Paper>
+              </Grid>
+            ))}
           </Grid>
+
         </Box>
 
         {/* Main Content */}
-        <Box px={{ xs: 3, md: 4 }}>
+        <Box px={{ xs: 2, sm: 3, md: 4 }}>
           <Paper 
             elevation={0}
             sx={{ 
-              borderRadius: 4,
+              borderRadius: { xs: 3, sm: 4 },
               overflow: 'hidden',
               border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
             }}
           >
-            <Box sx={{ p: { xs: 2.5, md: 3.5 } }}>
+            <Box sx={{ p: { xs: 1.5, sm: 2.5, md: 3.5 } }}>
               {/* Filters */}
               <Stack 
                 direction={{ xs: 'column', sm: 'row' }} 
-                spacing={2.5} 
+                spacing={{ xs: 1.5, sm: 2, md: 2.5 }} 
                 alignItems={{ xs: 'stretch', sm: 'center' }} 
                 justifyContent="space-between"
                 mb={3}
@@ -416,10 +320,11 @@ const MyTasksPage: React.FC = () => {
                     '& .MuiToggleButton-root': {
                       border: 'none',
                       borderRadius: 1.5,
-                      px: 2.5,
-                      py: 1,
+                      px: { xs: 1.5, sm: 2, md: 2.5 },
+                      py: { xs: 0.75, sm: 1 },
                       color: 'text.secondary',
                       fontWeight: 500,
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
                       transition: 'all 0.2s ease',
                       '&.Mui-selected': {
                         bgcolor: 'background.paper',
@@ -488,8 +393,8 @@ const MyTasksPage: React.FC = () => {
                         key={c.id}
                         elevation={0}
                         sx={{
-                          p: 2.5,
-                          borderRadius: 3,
+                          p: { xs: 1.5, sm: 2, md: 2.5 },
+                          borderRadius: { xs: 2, sm: 3 },
                           border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
                           bgcolor: c.completed 
                             ? alpha(theme.palette.success.main, 0.02)
@@ -502,10 +407,11 @@ const MyTasksPage: React.FC = () => {
                           },
                         }}
                       >
-                        <Stack direction="row" spacing={2} alignItems="flex-start">
+                        <Stack direction="row" spacing={{ xs: 1, sm: 1.5, md: 2 }} alignItems="flex-start">
                           <Checkbox
                             checked={!!c.completed}
                             onChange={(e) => handleToggleComplete(c.id, e.target.checked)}
+                            size="small"
                             sx={{ 
                               mt: -0.5,
                               color: alpha(theme.palette.primary.main, 0.4),
@@ -516,10 +422,11 @@ const MyTasksPage: React.FC = () => {
                           />
                           
                           <Box flex={1}>
-                            <Stack direction="row" alignItems="center" spacing={1.5} mb={1.5} flexWrap="wrap">
+                            <Stack direction="row" alignItems="center" spacing={{ xs: 1, sm: 1.5 }} mb={{ xs: 1, sm: 1.5 }} flexWrap="wrap">
                               <Typography 
                                 variant="body1" 
                                 fontWeight={600}
+                                fontSize={{ xs: '0.875rem', sm: '1rem' }}
                                 sx={{ 
                                   textDecoration: c.completed ? 'line-through' : 'none',
                                   color: c.completed ? 'text.secondary' : 'text.primary',
@@ -594,8 +501,8 @@ const MyTasksPage: React.FC = () => {
                             onClick={() => goToKanban(c.id)}
                             sx={{
                               bgcolor: alpha(theme.palette.primary.main, 0.06),
-                              width: 36,
-                              height: 36,
+                              width: { xs: 32, sm: 36 },
+                              height: { xs: 32, sm: 36 },
                               transition: 'all 0.2s ease',
                               '&:hover': {
                                 bgcolor: alpha(theme.palette.primary.main, 0.12),

@@ -69,7 +69,7 @@ export function useKanban() {
         const tasks: GoogleTask[] = await fetchTasks(list.id);
         
         const completedCount = tasks.filter(t => t.status === 'completed').length;
-        console.log(`📋 List "${list.title}": ${tasks.length} tasks (${completedCount} completed)`);
+        console.log(`List "${list.title}": ${tasks.length} tasks (${completedCount} completed)`);
 
         columns.push({
           id: list.id,
@@ -91,7 +91,7 @@ export function useKanban() {
         });
       }
 
-      console.log('✅ Board loaded:', { 
+      console.log('Board loaded:', { 
         columnCount: columns.length, 
         totalCards: Object.keys(cards).length,
         completedCards: Object.values(cards).filter(c => c.completed).length
@@ -121,7 +121,7 @@ export function useKanban() {
   /* ================= ADD ================= */
 
   async function addCard(columnId: string, cardData: Omit<Card, 'id'>) {
-    console.log('🔵 addCard called with:', { columnId, cardData });
+    console.log('addCard called with:', { columnId, cardData });
     
     try {
       // Parse notes untuk extract metadata
@@ -148,7 +148,7 @@ export function useKanban() {
           // Output format: YYYY-MM-DDTHH:MM:SS.000Z untuk Google Tasks API
           const date = new Date(cardData.dueDate);
           formattedDue = date.toISOString();
-          console.log('📅 Formatted due date:', { input: cardData.dueDate, output: formattedDue });
+          console.log('Formatted due date:', { input: cardData.dueDate, output: formattedDue });
         } catch (e) {
           console.warn('⚠️ Invalid due date format:', cardData.dueDate);
         }
@@ -171,10 +171,10 @@ export function useKanban() {
         taskPayload.due = formattedDue;
       }
 
-      console.log('📦 Final payload:', taskPayload);
+      console.log('Final payload:', taskPayload);
 
       const task = await createTask(columnId, taskPayload);
-      console.log('✅ Created task successfully:', task);
+      console.log('Created task successfully:', task);
 
       // Inbox: task created
       try {
@@ -217,9 +217,9 @@ export function useKanban() {
             : c
         ),
       }));
-      console.log('✅ Card added to board state');
+      console.log('Card added to board state');
     } catch (error) {
-      console.error('❌ Error adding card:', error);
+      console.error('Error adding card:', error);
       alert('Gagal menambahkan card: ' + (error instanceof Error ? error.message : 'Unknown error'));
       throw error;
     }
@@ -359,10 +359,10 @@ export function useKanban() {
   /* ================= MOVE CARD ================= */
 
   async function moveCard(cardId: string, fromColumnId: string, toColumnId: string) {
-    console.log('🔄 moveCard:', { cardId, fromColumnId, toColumnId });
+    console.log('moveCard:', { cardId, fromColumnId, toColumnId });
     
     if (isSyncing) {
-      console.log('⚠️ Already syncing, skipping...');
+      console.log('Already syncing, skipping...');
       return;
     }
     
@@ -400,11 +400,11 @@ export function useKanban() {
     try {
       // Google Tasks API doesn't support moving tasks between tasklists directly
       // We need to delete from old tasklist and create in new tasklist
-      console.log('📤 Moving task between tasklists via delete+create');
+      console.log('Moving task between tasklists via delete+create');
       
       // 1. Delete from old tasklist
       await deleteTask(fromColumnId, cardId);
-      console.log('✅ Deleted from old tasklist');
+      console.log('Deleted from old tasklist');
       
       // 2. Create in new tasklist dengan data yang sama
       // Build proper payload with required title field
@@ -420,9 +420,9 @@ export function useKanban() {
         taskPayload.due = card.dueDate;
       }
       
-      console.log('📤 Creating task in new tasklist with data:', taskPayload);
+      console.log('Creating task in new tasklist with data:', taskPayload);
       const newTask = await createTask(toColumnId, taskPayload);
-      console.log('✅ Created in new tasklist:', { id: newTask?.id, fullTask: newTask });
+      console.log('Created in new tasklist:', { id: newTask?.id, fullTask: newTask });
       
       if (!newTask || !newTask.id) {
         throw new Error('Failed to create task in new tasklist - no ID returned');
@@ -448,7 +448,7 @@ export function useKanban() {
 
       // Update state lokal agar memakai ID task baru dari Google
       if (newTask.id !== cardId) {
-        console.log('🔄 Updating local card ID from', cardId, 'to', newTask.id);
+        console.log('Updating local card ID from', cardId, 'to', newTask.id);
         setBoard((prev) => {
           const { [cardId]: oldCard, ...restCards } = prev.cards;
 
@@ -474,9 +474,9 @@ export function useKanban() {
         });
       }
 
-      console.log('✅ Task moved between tasklists without full reload');
+      console.log('Task moved between tasklists without full reload');
     } catch (error) {
-      console.error('❌ Failed to move task in Google Tasks:', error);
+      console.error('Failed to move task in Google Tasks:', error);
       // Revert UI change jika API gagal
       setBoard((prev) => {
         const newColumns = prev.columns.map((col) => {
@@ -514,7 +514,7 @@ export function useKanban() {
   /* ================= REORDER CARDS ================= */
 
   function reorderCards(columnId: string, oldIndex: number, newIndex: number) {
-    console.log('🔄 reorderCards (local only):', { columnId, oldIndex, newIndex });
+    console.log('reorderCards (local only):', { columnId, oldIndex, newIndex });
 
     // Ambil snapshot kolom saat ini
     const column = board.columns.find((col) => col.id === columnId);

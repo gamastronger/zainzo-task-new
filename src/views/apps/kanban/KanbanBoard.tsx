@@ -237,7 +237,7 @@ export default function KanbanBoard({ onRequestAddColumn }: KanbanBoardProps) {
             sx={{
               overflowX: 'auto',
               height: '100%',
-              bgcolor: 'rgb(244, 246, 249)', // hitam modern, bukan hitam mati
+              bgcolor: 'rgb(248, 248, 248)',
             }}
           >
 
