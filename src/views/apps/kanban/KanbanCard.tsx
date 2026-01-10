@@ -313,8 +313,8 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
             alt={card.title}
             sx={{
               width: '100%',
-              height: { xs: 120, sm: 140 },
-              borderRadius: { xs: 1, sm: 1.5 },
+                height: { xs: 120, sm: 140 },
+                borderRadius: { xs: 0.5, sm: 1 },
               objectFit: 'cover',
               mb: { xs: 1, sm: 1.5 },
             }}
@@ -445,7 +445,7 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
                     fontWeight: 500,
                     height: 18,
                     fontSize: '0.7rem',
-                    borderRadius: '3px',
+                    borderRadius: '2px',
                     '& .MuiChip-label': {
                       px: 1,
                       py: 0,

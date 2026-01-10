@@ -31,7 +31,7 @@ const Header = () => {
   const dispatch = useDispatch();
 
   const AppBarStyled = styled(AppBar)(({ theme }) => ({
-    background: theme.palette.background.paper,
+    background: 'rgb(249, 251, 255)',
     justifyContent: 'center',
     backdropFilter: 'blur(4px)',
 

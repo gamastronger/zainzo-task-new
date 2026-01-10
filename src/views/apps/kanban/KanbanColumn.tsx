@@ -164,7 +164,7 @@ const KanbanColumn = ({ column, cards, completedCards = [], columnColor, onAddCa
         minWidth: { xs: 260, sm: 300, md: 320 },
         width: { xs: 260, sm: 300, md: 320 },
         backgroundColor: bgColor,
-        borderRadius: { xs: 2, sm: 3 },
+        borderRadius: { xs: 2, sm: 2 },
         p: { xs: 1.5, sm: 2 },
         border: 'none',
         transition: 'all 0.2s ease',
@@ -235,7 +235,7 @@ const KanbanColumn = ({ column, cards, completedCards = [], columnColor, onAddCa
             },
             '&::-webkit-scrollbar-thumb': {
               backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)',
-              borderRadius: 3,
+              borderRadius: 1,
               '&:hover': {
                 backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)',
               },
@@ -487,17 +487,17 @@ const KanbanColumn = ({ column, cards, completedCards = [], columnColor, onAddCa
         onClose={handleCloseColor}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-        PaperProps={{ sx: { p: 1, borderRadius: 2 } }}
+        PaperProps={{ sx: { p: 1, borderRadius: 1 } }}
       >
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 28px)', gap: 1 }}>
           {pastelPalette.map((c) => (
             <Box
               key={c}
               onClick={() => handleSelectColor(c)}
-              sx={{
+                sx={{
                 width: 28,
                 height: 28,
-                borderRadius: 1,
+                borderRadius: 0.5,
                 bgcolor: c,
                 border: '1px solid rgba(0,0,0,0.1)',
                 cursor: 'pointer',

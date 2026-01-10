@@ -213,7 +213,7 @@ export default function KanbanBoard({ onRequestAddColumn }: KanbanBoardProps) {
             color: 'white',
             px: 2,
             py: 1,
-            borderRadius: 1,
+            borderRadius: 0.5,
             display: 'flex',
             alignItems: 'center',
             gap: 1
@@ -237,7 +237,7 @@ export default function KanbanBoard({ onRequestAddColumn }: KanbanBoardProps) {
             sx={{
               overflowX: 'auto',
               height: '100%',
-              bgcolor: 'rgb(248, 248, 248)',
+              bgcolor: 'rgb(249, 251, 255)',
             }}
           >
 

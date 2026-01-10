@@ -79,7 +79,16 @@ const Profile = () => {
       setAnchorEl(null);
       await logout();
     } finally {
+      // Preserve kanban column colors across logout/login
+      const kanbanColors = localStorage.getItem('kanban_column_colors');
+
+      // Clear all local storage (auth/session data, etc.)
       localStorage.clear();
+
+      // Restore kanban colors if they existed
+      if (kanbanColors) {
+        localStorage.setItem('kanban_column_colors', kanbanColors);
+      }
       window.location.href = '/auth/login';
     }
   };
