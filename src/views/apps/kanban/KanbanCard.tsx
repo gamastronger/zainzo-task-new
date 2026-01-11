@@ -55,7 +55,8 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
-  const [isChecking, setIsChecking] = useState(false);
+  const [showClickFx, setShowClickFx] = useState(false);
+  const [lastChecked, setLastChecked] = useState<boolean>(card.completed);
   const getDueDateString = (due?: string | null) => {
     if (!due) {
       return '';
@@ -84,29 +85,25 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
   const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     event.stopPropagation();
     const isChecked = event.target.checked;
+    // Trigger local click effects (slightly longer & smoother)
+    setLastChecked(isChecked);
+    setShowClickFx(true);
+    setTimeout(() => setShowClickFx(false), 800);
     
     if (isChecked) {
-      // Start checking animation
-      setIsChecking(true);
-      
-      // Trigger celebration animation after check animation
-      setTimeout(() => {
-        setCelebrating(true);
-        setIsChecking(false);
-      }, 200);
-      
-      // Update card as completed after celebration
+      // Trigger celebration overlay (start quickly but fade out slower)
+      setCelebrating(true);
+      // Update card state shortly after animation starts
       setTimeout(() => {
         onUpdate(card.id, { completed: true });
+      }, 220);
+      // Hide celebration after it plays with a smooth tail
+      setTimeout(() => {
         setCelebrating(false);
       }, 1000);
     } else {
-      // Smooth unchecking
-      setIsChecking(true);
-      setTimeout(() => {
-        onUpdate(card.id, { completed: false });
-        setIsChecking(false);
-      }, 200);
+      // Directly uncomplete with no harsh bounce
+      onUpdate(card.id, { completed: false });
     }
   };
 
@@ -148,14 +145,12 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
           border: '1px solid',
           borderColor: 'divider',
           boxShadow: 'none',
-          transition: 'all 0.2s ease',
+          transition: 'border-color 0.2s ease, background-color 0.2s ease, opacity 0.2s ease',
           position: 'relative',
           opacity: card.completed ? 0.7 : 1,
-          transform: isChecking ? 'scale(0.98)' : 'scale(1)',
           '&:hover': {
             borderColor: card.completed ? 'divider' : 'primary.light',
             backgroundColor: card.completed ? 'white' : 'action.hover',
-            transform: isChecking ? 'scale(0.98)' : 'scale(1)',
           },
         }}
         data-card-id={card.id}
@@ -174,7 +169,7 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
                 borderRadius: '50%',
                 bgcolor: 'rgba(76, 175, 80, 0.3)',
                 zIndex: 10,
-                animation: 'ripple 0.8s ease-out',
+                animation: 'ripple 1s ease-out',
                 '@keyframes ripple': {
                   '0%': { 
                     width: '0px',
@@ -321,7 +316,62 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
           />
         )}
         <Stack direction="row" alignItems="flex-start" spacing={1}>
-          <Checkbox
+          <Box sx={{ position: 'relative', width: 24, height: 24, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+            {/* Click pulse ring */}
+            {showClickFx && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  pointerEvents: 'none',
+                  top: '50%',
+                  left: '50%',
+                  width: 24,
+                  height: 24,
+                  borderRadius: '50%',
+                  border: '2px solid',
+                  borderColor: lastChecked ? '#4CAF50' : theme.palette.grey[400],
+                  transform: 'translate(-50%, -50%)',
+                  zIndex: 5,
+                  animation: 'ringPulse 0.8s ease-out',
+                  '@keyframes ringPulse': {
+                    '0%': { transform: 'translate(-50%, -50%) scale(0.7)', opacity: 0.6 },
+                    '100%': { transform: 'translate(-50%, -50%) scale(1.5)', opacity: 0 },
+                  },
+                }}
+              />
+            )}
+
+            {/* Sparkles on check */}
+            {showClickFx && lastChecked && (
+              <>
+                {[...Array(6)].map((_, i) => (
+                  <Box
+                    key={i}
+                    sx={{
+                      position: 'absolute',
+                      pointerEvents: 'none',
+                      top: '50%',
+                      left: '50%',
+                      width: 4,
+                      height: 4,
+                      borderRadius: '50%',
+                      bgcolor: ['#4CAF50', '#66BB6A', '#81C784', '#FFA726', '#42A5F5', '#7E57C2'][i % 6],
+                      zIndex: 6,
+                      animation: `sparkle-${i} 0.7s ease-out forwards`,
+                      [`@keyframes sparkle-${i}`]: {
+                        '0%': { transform: 'translate(-50%, -50%) translate(0, 0) scale(0.8)', opacity: 1 },
+                        '100%': {
+                          transform: `translate(-50%, -50%) translate(${Math.cos((i / 6) * 2 * Math.PI) * 14}px, ${Math.sin((i / 6) * 2 * Math.PI) * 14}px) scale(0.2)`,
+                          opacity: 0,
+                        },
+                      },
+                    }}
+                  />
+                ))}
+              </>
+            )}
+
+            <Checkbox
             checked={card.completed}
             onChange={handleCheckboxChange}
             onClick={(e) => e.stopPropagation()}
@@ -329,34 +379,37 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
             icon={
               <Box
                 sx={{
-                  width: 20,
-                  height: 20,
+                  width: 16,
+                  height: 16,
                   borderRadius: '50%',
                   border: '2px solid',
-                  borderColor: isChecking ? '#4CAF50' : 'grey.400',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  transform: isChecking ? 'scale(0.9)' : 'scale(1)',
+                  borderColor: card.completed ? '#4CAF50' : 'grey.400',
+                  transition: 'border-color 0.3s ease, transform 0.22s ease',
+                  transform: card.completed ? 'scale(0.98)' : 'scale(1)',
                 }}
               />
             }
             checkedIcon={
               <Box
                 sx={{
-                  width: 20,
-                  height: 20,
+                  width: 16,
+                  height: 16,
                   borderRadius: '50%',
                   bgcolor: '#4CAF50',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: 'white',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  transform: isChecking ? 'scale(1.1)' : 'scale(1)',
-                  animation: !isChecking && card.completed ? 'checkBounce 0.4s ease-out' : 'none',
-                  '@keyframes checkBounce': {
-                    '0%': { transform: 'scale(0)' },
-                    '50%': { transform: 'scale(1.2)' },
-                    '100%': { transform: 'scale(1)' },
+                  fontSize: '0.65rem',
+                  lineHeight: 1,
+                  transition: 'transform 0.26s ease, box-shadow 0.26s ease',
+                  transform: card.completed ? 'scale(1.01)' : 'scale(0.96)',
+                  boxShadow: card.completed ? '0 0 0 0 rgba(76, 175, 80, 0.45)' : 'none',
+                  animation: card.completed ? 'checkSoftBounce 0.42s ease-out' : 'none',
+                  '@keyframes checkSoftBounce': {
+                    '0%': { transform: 'scale(0.9)', boxShadow: '0 0 0 7px rgba(76, 175, 80, 0.35)' },
+                    '55%': { transform: 'scale(1.03)', boxShadow: '0 0 0 1px rgba(76, 175, 80, 0.1)' },
+                    '100%': { transform: 'scale(1.01)', boxShadow: '0 0 0 0 rgba(76, 175, 80, 0)' },
                   },
                 }}
               >
@@ -368,10 +421,11 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
               mt: 0.2,
               transition: 'transform 0.2s ease',
               '&:hover': {
-                transform: 'scale(1.1)',
+                transform: 'scale(1.01)',
               },
             }}
-          />
+            />
+          </Box>
           <Box sx={{ flex: 1 }}>
             <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
               <Typography 
@@ -383,8 +437,8 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
                   fontSize: '0.9rem',
                   textDecoration: card.completed ? 'line-through' : 'none',
                   color: card.completed ? 'text.secondary' : 'text.primary',
-                  transition: 'all 0.3s ease',
-                  opacity: isChecking ? 0.6 : 1,
+                  transition: 'color 0.25s ease, text-decoration-color 0.25s ease, opacity 0.2s ease',
+                  opacity: card.completed ? 0.7 : 1,
                 }}
               >
                 {card.title}
