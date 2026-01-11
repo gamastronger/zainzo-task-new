@@ -26,6 +26,7 @@
     "@tabler/icons-react": "^2.38.0",
     "axios": "0.27.2",
     "axios-mock-adapter": "1.21.1",
+    "canvas-confetti": "^1.9.4",
     "formik": "2.2.9",
     "framer-motion": "^12.23.26",
     "i18next": "22.0.6",
@@ -46,6 +47,7 @@
     "yup": "^0.32.11"
   },
   "devDependencies": {
+    "@types/canvas-confetti": "^1.9.0",
     "@types/lodash": "4.14.182",
     "@types/lodash.debounce": "^4.0.9",
     "@types/node": "16.11.47",

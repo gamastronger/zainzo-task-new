@@ -21,6 +21,32 @@ import { IconCalendar, IconDotsVertical, IconTrash } from '@tabler/icons-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card } from './kanban.types';
+import confetti from 'canvas-confetti';
+
+// Subtle radial confetti ring originating from the checkbox center
+const fireRingConfetti = (x: number, y: number) => {
+  const cx = x / window.innerWidth;
+  const cy = y / window.innerHeight;
+  const segments = 10; // 8–12 total particles
+  // const colors = ['#66BB6A', '#4CAF50']; // muted success tones
+
+  for (let i = 0; i < segments; i++) {
+    const angleDeg = (360 / segments) * i; // evenly distributed 360°
+confetti({
+  particleCount: 3,        
+  angle: angleDeg,
+  spread: 6,               
+  startVelocity: 14,      
+  gravity: 0.9,
+  scalar: 0.55,            
+  ticks: 32,               
+  origin: { x: cx, y: cy },
+  colors: ['#ebffa9', '#ff8686', '#a692ff'], 
+});
+
+  }
+};
+
 
 const getLabelColor = (label: string): string => {
   const normalized = label.trim().toLowerCase();
@@ -54,9 +80,6 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [editOpen, setEditOpen] = useState(false);
-  const [celebrating, setCelebrating] = useState(false);
-  const [showClickFx, setShowClickFx] = useState(false);
-  const [lastChecked, setLastChecked] = useState<boolean>(card.completed);
   const getDueDateString = (due?: string | null) => {
     if (!due) {
       return '';
@@ -85,27 +108,56 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
   const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     event.stopPropagation();
     const isChecked = event.target.checked;
-    // Trigger local click effects (slightly longer & smoother)
-    setLastChecked(isChecked);
-    setShowClickFx(true);
-    setTimeout(() => setShowClickFx(false), 800);
-    
-    if (isChecked) {
-      // Trigger celebration overlay (start quickly but fade out slower)
-      setCelebrating(true);
-      // Update card state shortly after animation starts
-      setTimeout(() => {
-        onUpdate(card.id, { completed: true });
-      }, 220);
-      // Hide celebration after it plays with a smooth tail
-      setTimeout(() => {
-        setCelebrating(false);
-      }, 1000);
-    } else {
-      // Directly uncomplete with no harsh bounce
-      onUpdate(card.id, { completed: false });
+
+    // Trigger ONLY when transitioning from unchecked → checked
+    if (!card.completed && isChecked) {
+      const rect = event.target.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      fireRingConfetti(x, y);
     }
+
+    onUpdate(card.id, { completed: isChecked });
   };
+
+
+
+  const CircleIcon = () => (
+  <Box
+    sx={{
+      width: 16,
+      height: 16,
+      borderRadius: '50%',
+      border: '2px solid',
+      borderColor: 'grey.400',
+    }}
+  />
+);
+
+const CircleCheckedIcon = () => (
+  <Box
+    sx={{
+      width: 16,
+      height: 16,
+      borderRadius: '50%',
+      bgcolor: '#4CAF50',
+      color: 'white',
+      fontSize: '0.65rem',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      animation: 'checkPop 180ms ease-out',
+      '@keyframes checkPop': {
+        '0%': { transform: 'scale(0.7)', opacity: 0 },
+        '100%': { transform: 'scale(1)', opacity: 1 },
+      },
+    }}
+  >
+    ✓
+  </Box>
+);
+
+
 
   const style = useMemo(
     () => ({
@@ -155,152 +207,6 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
         }}
         data-card-id={card.id}
       >
-        {/* Celebration overlay with confetti particles */}
-        {celebrating && (
-          <>
-            {/* Ripple effect */}
-            <Box
-              sx={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                width: 0,
-                height: 0,
-                borderRadius: '50%',
-                bgcolor: 'rgba(76, 175, 80, 0.3)',
-                zIndex: 10,
-                animation: 'ripple 1s ease-out',
-                '@keyframes ripple': {
-                  '0%': { 
-                    width: '0px',
-                    height: '0px',
-                    opacity: 1,
-                    transform: 'translate(-50%, -50%)',
-                  },
-                  '100%': { 
-                    width: '300px',
-                    height: '300px',
-                    opacity: 0,
-                    transform: 'translate(-50%, -50%)',
-                  },
-                },
-              }}
-            />
-            
-            {/* Confetti particles */}
-            {[...Array(12)].map((_, i) => (
-              <Box
-                key={i}
-                sx={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
-                  bgcolor: ['#4CAF50', '#66BB6A', '#81C784', '#FFA726', '#42A5F5', '#7E57C2'][i % 6],
-                  zIndex: 11,
-                  animation: `confetti-${i} 0.8s ease-out forwards`,
-                  '@keyframes confetti-0': {
-                    '0%': { transform: 'translate(-50%, -50%) translate(0, 0) scale(0)', opacity: 1 },
-                    '100%': { transform: `translate(-50%, -50%) translate(${Math.cos(0) * 60}px, ${Math.sin(0) * 60}px) scale(0)`, opacity: 0 },
-                  },
-                  '@keyframes confetti-1': {
-                    '0%': { transform: 'translate(-50%, -50%) translate(0, 0) scale(0)', opacity: 1 },
-                    '100%': { transform: `translate(-50%, -50%) translate(${Math.cos(Math.PI / 6) * 70}px, ${Math.sin(Math.PI / 6) * 70}px) scale(0)`, opacity: 0 },
-                  },
-                  '@keyframes confetti-2': {
-                    '0%': { transform: 'translate(-50%, -50%) translate(0, 0) scale(0)', opacity: 1 },
-                    '100%': { transform: `translate(-50%, -50%) translate(${Math.cos(Math.PI / 3) * 65}px, ${Math.sin(Math.PI / 3) * 65}px) scale(0)`, opacity: 0 },
-                  },
-                  '@keyframes confetti-3': {
-                    '0%': { transform: 'translate(-50%, -50%) translate(0, 0) scale(0)', opacity: 1 },
-                    '100%': { transform: `translate(-50%, -50%) translate(${Math.cos(Math.PI / 2) * 75}px, ${Math.sin(Math.PI / 2) * 75}px) scale(0)`, opacity: 0 },
-                  },
-                  '@keyframes confetti-4': {
-                    '0%': { transform: 'translate(-50%, -50%) translate(0, 0) scale(0)', opacity: 1 },
-                    '100%': { transform: `translate(-50%, -50%) translate(${Math.cos(2 * Math.PI / 3) * 70}px, ${Math.sin(2 * Math.PI / 3) * 70}px) scale(0)`, opacity: 0 },
-                  },
-                  '@keyframes confetti-5': {
-                    '0%': { transform: 'translate(-50%, -50%) translate(0, 0) scale(0)', opacity: 1 },
-                    '100%': { transform: `translate(-50%, -50%) translate(${Math.cos(5 * Math.PI / 6) * 65}px, ${Math.sin(5 * Math.PI / 6) * 65}px) scale(0)`, opacity: 0 },
-                  },
-                  '@keyframes confetti-6': {
-                    '0%': { transform: 'translate(-50%, -50%) translate(0, 0) scale(0)', opacity: 1 },
-                    '100%': { transform: `translate(-50%, -50%) translate(${Math.cos(Math.PI) * 60}px, ${Math.sin(Math.PI) * 60}px) scale(0)`, opacity: 0 },
-                  },
-                  '@keyframes confetti-7': {
-                    '0%': { transform: 'translate(-50%, -50%) translate(0, 0) scale(0)', opacity: 1 },
-                    '100%': { transform: `translate(-50%, -50%) translate(${Math.cos(7 * Math.PI / 6) * 70}px, ${Math.sin(7 * Math.PI / 6) * 70}px) scale(0)`, opacity: 0 },
-                  },
-                  '@keyframes confetti-8': {
-                    '0%': { transform: 'translate(-50%, -50%) translate(0, 0) scale(0)', opacity: 1 },
-                    '100%': { transform: `translate(-50%, -50%) translate(${Math.cos(4 * Math.PI / 3) * 65}px, ${Math.sin(4 * Math.PI / 3) * 65}px) scale(0)`, opacity: 0 },
-                  },
-                  '@keyframes confetti-9': {
-                    '0%': { transform: 'translate(-50%, -50%) translate(0, 0) scale(0)', opacity: 1 },
-                    '100%': { transform: `translate(-50%, -50%) translate(${Math.cos(3 * Math.PI / 2) * 75}px, ${Math.sin(3 * Math.PI / 2) * 75}px) scale(0)`, opacity: 0 },
-                  },
-                  '@keyframes confetti-10': {
-                    '0%': { transform: 'translate(-50%, -50%) translate(0, 0) scale(0)', opacity: 1 },
-                    '100%': { transform: `translate(-50%, -50%) translate(${Math.cos(5 * Math.PI / 3) * 70}px, ${Math.sin(5 * Math.PI / 3) * 70}px) scale(0)`, opacity: 0 },
-                  },
-                  '@keyframes confetti-11': {
-                    '0%': { transform: 'translate(-50%, -50%) translate(0, 0) scale(0)', opacity: 1 },
-                    '100%': { transform: `translate(-50%, -50%) translate(${Math.cos(11 * Math.PI / 6) * 65}px, ${Math.sin(11 * Math.PI / 6) * 65}px) scale(0)`, opacity: 0 },
-                  },
-                }}
-              />
-            ))}
-            
-            {/* Success check icon */}
-            <Box
-              sx={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                zIndex: 12,
-                animation: 'checkPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
-                '@keyframes checkPop': {
-                  '0%': { transform: 'translate(-50%, -50%) scale(0) rotate(-45deg)', opacity: 0 },
-                  '50%': { transform: 'translate(-50%, -50%) scale(1.3) rotate(0deg)', opacity: 1 },
-                  '100%': { transform: 'translate(-50%, -50%) scale(1) rotate(0deg)', opacity: 1 },
-                },
-              }}
-            >
-              <Box
-                sx={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: '50%',
-                  bgcolor: '#4CAF50',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: '0 4px 20px rgba(76, 175, 80, 0.4)',
-                }}
-              >
-                <Box
-                  component="svg"
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <path
-                    d="M5 13l4 4L19 7"
-                    stroke="white"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </Box>
-              </Box>
-            </Box>
-          </>
-        )}
-        
         {card.image && (
           <Box
             component="img"
@@ -316,116 +222,30 @@ const KanbanCard = ({ card, columnId, onUpdate, onDelete }: KanbanCardProps) => 
           />
         )}
         <Stack direction="row" alignItems="flex-start" spacing={1}>
-          <Box sx={{ position: 'relative', width: 24, height: 24, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-            {/* Click pulse ring */}
-            {showClickFx && (
-              <Box
-                sx={{
-                  position: 'absolute',
-                  pointerEvents: 'none',
-                  top: '50%',
-                  left: '50%',
-                  width: 24,
-                  height: 24,
-                  borderRadius: '50%',
-                  border: '2px solid',
-                  borderColor: lastChecked ? '#4CAF50' : theme.palette.grey[400],
-                  transform: 'translate(-50%, -50%)',
-                  zIndex: 5,
-                  animation: 'ringPulse 0.8s ease-out',
-                  '@keyframes ringPulse': {
-                    '0%': { transform: 'translate(-50%, -50%) scale(0.7)', opacity: 0.6 },
-                    '100%': { transform: 'translate(-50%, -50%) scale(1.5)', opacity: 0 },
-                  },
-                }}
-              />
-            )}
+          <Checkbox
+  checked={card.completed}
+  onChange={handleCheckboxChange}
+  onClick={(e) => e.stopPropagation()}
+  size="small"
+  icon={<CircleIcon />}
+  checkedIcon={<CircleCheckedIcon />}
+  sx={{
+  p: 0,
+  mt: 0.2,
+  borderRadius: '50%',
+  transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+  '&:hover': {
+    transform: 'scale(1.04)',
+    boxShadow: '0 0 0 3px rgba(76, 175, 80, 0.12)',
+  },
+  '&:active': {
+    transform: 'scale(0.96)',
+  },
+}}
 
-            {/* Sparkles on check */}
-            {showClickFx && lastChecked && (
-              <>
-                {[...Array(6)].map((_, i) => (
-                  <Box
-                    key={i}
-                    sx={{
-                      position: 'absolute',
-                      pointerEvents: 'none',
-                      top: '50%',
-                      left: '50%',
-                      width: 4,
-                      height: 4,
-                      borderRadius: '50%',
-                      bgcolor: ['#4CAF50', '#66BB6A', '#81C784', '#FFA726', '#42A5F5', '#7E57C2'][i % 6],
-                      zIndex: 6,
-                      animation: `sparkle-${i} 0.7s ease-out forwards`,
-                      [`@keyframes sparkle-${i}`]: {
-                        '0%': { transform: 'translate(-50%, -50%) translate(0, 0) scale(0.8)', opacity: 1 },
-                        '100%': {
-                          transform: `translate(-50%, -50%) translate(${Math.cos((i / 6) * 2 * Math.PI) * 14}px, ${Math.sin((i / 6) * 2 * Math.PI) * 14}px) scale(0.2)`,
-                          opacity: 0,
-                        },
-                      },
-                    }}
-                  />
-                ))}
-              </>
-            )}
+/>
 
-            <Checkbox
-            checked={card.completed}
-            onChange={handleCheckboxChange}
-            onClick={(e) => e.stopPropagation()}
-            size="small"
-            icon={
-              <Box
-                sx={{
-                  width: 16,
-                  height: 16,
-                  borderRadius: '50%',
-                  border: '2px solid',
-                  borderColor: card.completed ? '#4CAF50' : 'grey.400',
-                  transition: 'border-color 0.3s ease, transform 0.22s ease',
-                  transform: card.completed ? 'scale(0.98)' : 'scale(1)',
-                }}
-              />
-            }
-            checkedIcon={
-              <Box
-                sx={{
-                  width: 16,
-                  height: 16,
-                  borderRadius: '50%',
-                  bgcolor: '#4CAF50',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontSize: '0.65rem',
-                  lineHeight: 1,
-                  transition: 'transform 0.26s ease, box-shadow 0.26s ease',
-                  transform: card.completed ? 'scale(1.01)' : 'scale(0.96)',
-                  boxShadow: card.completed ? '0 0 0 0 rgba(76, 175, 80, 0.45)' : 'none',
-                  animation: card.completed ? 'checkSoftBounce 0.42s ease-out' : 'none',
-                  '@keyframes checkSoftBounce': {
-                    '0%': { transform: 'scale(0.9)', boxShadow: '0 0 0 7px rgba(76, 175, 80, 0.35)' },
-                    '55%': { transform: 'scale(1.03)', boxShadow: '0 0 0 1px rgba(76, 175, 80, 0.1)' },
-                    '100%': { transform: 'scale(1.01)', boxShadow: '0 0 0 0 rgba(76, 175, 80, 0)' },
-                  },
-                }}
-              >
-                ✓
-              </Box>
-            }
-            sx={{
-              p: 0,
-              mt: 0.2,
-              transition: 'transform 0.2s ease',
-              '&:hover': {
-                transform: 'scale(1.01)',
-              },
-            }}
-            />
-          </Box>
+
           <Box sx={{ flex: 1 }}>
             <Stack direction="row" alignItems="flex-start" justifyContent="space-between">
               <Typography 
