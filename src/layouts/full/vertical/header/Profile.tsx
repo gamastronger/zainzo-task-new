@@ -10,7 +10,7 @@ import {
   Stack,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import * as dropdownData from './data';
+// import * as dropdownData from './data';
 import { IconMail } from '@tabler/icons-react';
 import useAuth from 'src/guards/authGuard/UseAuth';
 
@@ -136,7 +136,7 @@ const Profile = () => {
         <Divider sx={{ my: 2 }} />
 
         {/* Menu Actions */}
-        <Stack spacing={0.5}>
+        {/* <Stack spacing={0.5}>
           {dropdownData.profile.map((item) => (
             <Button
               key={item.title}
@@ -188,7 +188,7 @@ const Profile = () => {
               </Stack>
             </Button>
           ))}
-        </Stack>
+        </Stack> */}
 
         <Divider sx={{ my: 2 }} />
 

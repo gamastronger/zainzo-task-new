@@ -7,7 +7,7 @@ import { IconPlus } from '@tabler/icons-react';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 
-import Notifications from './Notification';
+// import Notifications from './Notification';
 import Profile from './Profile';
 import { AppState } from 'src/store/Store';
 import GridMenu from 'src/layouts/full/shared/GridMenu';
@@ -128,7 +128,7 @@ const Header = () => {
           </IconButton>
             {/* 9-dots Grid Menu */}
             <GridMenu />
-          <Notifications />
+          {/* <Notifications /> */}
           <Profile />
         </Stack>
       </ToolbarStyled>
