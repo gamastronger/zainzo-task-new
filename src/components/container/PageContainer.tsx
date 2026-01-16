@@ -11,7 +11,7 @@ type Props = {
 };
 
 const PageContainer = ({ title, description, children }: Props) => (
-  <div style={{ maxWidth: '100%', overflow: 'hidden', height: '100%' }}>
+  <div style={{ maxWidth: '100%', minHeight: '100vh', overflowX: 'hidden' }}>
     <Helmet>
       <title>{title}</title>
       <meta name="description" content={description} />
