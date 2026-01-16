@@ -9,7 +9,6 @@ import {
   IconButton,
   Stack,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
 // import * as dropdownData from './data';
 import { IconMail } from '@tabler/icons-react';
 import useAuth from 'src/guards/authGuard/UseAuth';
@@ -46,7 +45,6 @@ function getStoredUser(): StoredUser {
 const Profile = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const { logout, user } = useAuth();
-  const navigate = useNavigate();
   const [userData, setUserData] = useState<StoredUser>(user ?? getStoredUser());
 
   useEffect(() => {
