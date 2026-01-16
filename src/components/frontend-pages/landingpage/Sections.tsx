@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, Container, Grid, Typography } from '@mui/material';
+import LandingKanbanSample from './LandingKanbanSample';
 
 const textSx = {
   maxWidth: 420,
@@ -45,12 +46,7 @@ export const FocusSection: React.FC = () => {
         </Grid>
 
         <Grid item xs={12} md={6} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
-          <Box
-            component="img"
-            src="src/assets/images/landingpage/google-task.png"
-            alt="Tampilan tugas yang lebih fokus"
-            sx={imageSx}
-          />
+          <LandingKanbanSample />
         </Grid>
       </Grid>
     </Container>

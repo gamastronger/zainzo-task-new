@@ -8,17 +8,19 @@ const LandingHero: React.FC = () => {
   return (
     <Box
       sx={{
+        position: 'relative',
         background: 'linear-gradient(180deg, #e0eaff 0%, #ffffff 100%)',
-        py: 12,
+        pt: 20,
+        pb: 12,
         textAlign: 'center',
       }}
     >
       <Container maxWidth="md">
-        <Typography variant="h3" fontWeight={700} mb={2}>
+        <Typography variant="h2" fontWeight={800} mb={2}>
           Zainzo Task
         </Typography>
 
-        <Typography color="#475569" mb={1}>
+        <Typography variant="h6" color="#475569" mb={1}>
           Aplikasi desktop untuk Google Tasks
         </Typography>
 

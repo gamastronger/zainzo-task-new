@@ -1,6 +1,8 @@
 import React from 'react';
 import { Container, Grid, Typography, Button, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import ZtLogo from 'src/assets/images/svgs/ztlogo.svg';
+
 
 const LandingNavbar: React.FC = () => {
   const navigate = useNavigate();
@@ -8,9 +10,11 @@ const LandingNavbar: React.FC = () => {
   return (
     <Box
       sx={{
-        position: 'sticky',
+        position: 'absolute',
+        left: 0,
+        right: 0,
         top: 24,
-        zIndex: 1000,
+        zIndex: 1200,
       }}
     >
       <Container maxWidth="lg">
@@ -27,10 +31,22 @@ const LandingNavbar: React.FC = () => {
           <Grid container alignItems="center">
             {/* LEFT */}
             <Grid item xs={4}>
-              <Typography fontWeight={600}>
-                Zainzo Task
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box
+                  component="img"
+                  src={ZtLogo}
+                  alt="Zainzo Task"
+                  sx={{
+                    width: 22,
+                    height: 22,
+                  }}
+                />
+                <Typography fontWeight={600}>
+                  Zainzo Task
+                </Typography>
+              </Box>
             </Grid>
+
 
             {/* CENTER */}
             <Grid item xs={4} textAlign="center">
