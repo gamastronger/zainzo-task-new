@@ -51,7 +51,7 @@ const Header = () => {
   }));
 
   return (
-    <AppBarStyled position="sticky" color="default">
+    <AppBarStyled position="fixed" color="default">
       <ToolbarStyled>
         {/* Logo and Title */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>

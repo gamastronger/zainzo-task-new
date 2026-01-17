@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { styled, Container, Box } from '@mui/material';
 import { useSelector } from 'src/store/Store';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { AppState } from 'src/store/Store';
 import Header from './vertical/header/Header';
 import Navigation from '../full/horizontal/navbar/Navigation';
@@ -27,6 +27,9 @@ const PageWrapper = styled('div')(() => ({
 
 const FullLayout: FC = () => {
   const customizer = useSelector((state: AppState) => state.customizer);
+  const location = useLocation();
+  const isKanbanPage = location.pathname.includes('/app');
+  const headerHeight = customizer.TopbarHeight || 70;
 
   return (
     <MainWrapper
@@ -45,16 +48,20 @@ const FullLayout: FC = () => {
         <Container
           sx={{
             maxWidth: customizer.isLayout === 'boxed' ? 'lg' : '100%!important',
-            paddingLeft: { xs: '16px', sm: '24px' },
-            paddingRight: { xs: '16px', sm: '24px' },
+            paddingTop: isKanbanPage ? 0 : { xs: '16px', sm: '24px' },
+            paddingLeft: isKanbanPage ? 0 : { xs: '16px', sm: '24px' },
+            paddingRight: isKanbanPage ? 0 : { xs: '16px', sm: '24px' },
+            marginTop: { xs: '56px', lg: `${headerHeight}px` },
             overflow: 'hidden',
+            height: isKanbanPage ? `calc(100vh - ${headerHeight}px)` : 'auto',
           }}
         >
           {/* ------------------------------------------- */}
           {/* PageContent */}
           {/* ------------------------------------------- */}
           <Box sx={{ 
-            minHeight: 'calc(100vh - 170px)',
+            minHeight: isKanbanPage ? '100%' : 'calc(100vh - 170px)',
+            height: isKanbanPage ? '100%' : 'auto',
             maxWidth: '100%',
             overflow: 'hidden',
           }}>

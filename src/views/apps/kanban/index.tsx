@@ -21,13 +21,11 @@ const KanbanPage = () => {
   return (
     <PageContainer title="Kanban" description="Manage work with the Kanban board">
       <Box sx={{ 
-        position: 'fixed',
-        top: { xs: '56px', sm: '64px' },
-        left: 0,
-        right: 0,
-        bottom: 0,
+        height: '100%',
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
         overflow: 'hidden',
-        zIndex: 1,
       }}>
         <KanbanBoard onRequestAddColumn={handleRequestAddColumn} />
       </Box>

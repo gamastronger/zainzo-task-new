@@ -1,6 +1,8 @@
 import React from 'react';
 import { Box, Container, Grid, Typography } from '@mui/material';
 import LandingKanbanSample from './LandingKanbanSample';
+import googleWorkspaceImg from '../../../assets/images/landingpage/google-workspace.png';
+import digitalisasiImg from '../../../assets/images/landingpage/digitalisasi.png';
 
 const textSx = {
   maxWidth: 420,
@@ -79,7 +81,7 @@ export const DataSection: React.FC = () => {
           {/* VISUAL / BUTTON — KIRI */}
           <Box
             component="img"
-            src="src/assets/images/landingpage/google-workspace.png"
+            src={googleWorkspaceImg}
             alt="Integrasi Google Workspace"
             sx={{
               ...imageSx,
@@ -157,7 +159,7 @@ export const SyncSection: React.FC = () => {
         <Grid item xs={12} md={6} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
           <Box
             component="img"
-            src="src/assets/images/landingpage/digitalisasi.png"
+            src={digitalisasiImg}
             alt="Digitalisasi dan sinkronisasi data"
             sx={imageSx}
           />
