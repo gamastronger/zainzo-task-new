@@ -370,7 +370,33 @@ const KanbanColumn = ({ column, cards, completedCards = [], columnColor, onAddCa
           </Box>
 
           <Collapse in={completedExpanded}>
-            <Box sx={{ mt: 0.5 }}>
+            <Box
+              sx={{
+                mt: 0.5,
+                maxHeight: 220,
+                overflowY: 'auto',
+                pr: 0.5,
+                '&::-webkit-scrollbar': {
+                  width: 5,
+                },
+                '&::-webkit-scrollbar-track': {
+                  backgroundColor: 'transparent',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor:
+                    theme.palette.mode === 'dark'
+                      ? 'rgba(255,255,255,0.15)'
+                      : 'rgba(0,0,0,0.15)',
+                  borderRadius: 1,
+                  '&:hover': {
+                    backgroundColor:
+                      theme.palette.mode === 'dark'
+                        ? 'rgba(255,255,255,0.25)'
+                        : 'rgba(0,0,0,0.25)',
+                  },
+                },
+              }}
+            >
               {completedCards.map((card) => (
                 <Box
                   key={card.id}

@@ -44,7 +44,7 @@ function getStoredUser(): StoredUser {
 
 const Profile = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const { logout, user } = useAuth();
+  const { logout, user, switchAccount } = useAuth();
   const [userData, setUserData] = useState<StoredUser>(user ?? getStoredUser());
 
   useEffect(() => {
@@ -71,6 +71,15 @@ const Profile = () => {
       userName
     )}&background=5D87FF&color=fff&size=128`;
   const userRole = userData?.jobTitle || 'Google User';
+
+  const handleSwitchAccount = () => {
+    try {
+      setAnchorEl(null);
+      switchAccount();
+    } catch (error) {
+      console.error('Failed to switch account', error);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -149,12 +158,12 @@ const Profile = () => {
                 justifyContent: 'flex-start',
                 textTransform: 'none',
                 bgcolor: 'transparent',
-                color: 'text.primary', // ⬅️ warna teks default DIPAKSA
+                color: 'text.primary', 
                 transition: 'background-color .15s ease',
 
                 '&:hover': {
                   bgcolor: 'rgba(93, 135, 255, 0.08)', // biru soft
-                  color: 'text.primary',              // ⬅️ PENTING: JANGAN BIARKAN MUI UBAH
+                  color: 'text.primary',              
                 },
               }}
             >
@@ -190,16 +199,26 @@ const Profile = () => {
 
         <Divider sx={{ my: 2 }} />
 
-        {/* Logout */}
-        <Button
-          fullWidth
-          variant="outlined"
-          color="error"
-          onClick={handleLogout}
-          sx={{ borderRadius: 2 }}
-        >
-          Logout
-        </Button>
+        {/* Switch account & Logout */}
+        <Stack spacing={1}>
+          <Button
+            fullWidth
+            variant="outlined"
+            onClick={handleSwitchAccount}
+            sx={{ borderRadius: 2, justifyContent: 'flex-start', textTransform: 'none' }}
+          >
+            Switch account
+          </Button>
+          <Button
+            fullWidth
+            variant="outlined"
+            color="error"
+            onClick={handleLogout}
+            sx={{ borderRadius: 2, justifyContent: 'flex-start', textTransform: 'none' }}
+          >
+            Sign out
+          </Button>
+        </Stack>
       </Menu>
     </Box>
   );

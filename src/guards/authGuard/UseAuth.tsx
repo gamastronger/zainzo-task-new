@@ -7,7 +7,7 @@ interface GoogleTokenResponse {
 }
 
 interface GoogleTokenClient {
-  requestAccessToken: () => void;
+  requestAccessToken: (options?: { prompt?: string }) => void;
 }
 
 declare global {
@@ -29,6 +29,7 @@ declare global {
 const CLIENT_ID = '392300282718-pdm00rrj454sd6en340spphfpgk9oepk.apps.googleusercontent.com';
 const TOKEN_KEY = 'google_token';
 const USER_KEY = 'google_user';
+const SWITCH_FLAG = 'google_switching_account';
 
 const useAuth = () => {
   const navigate = useNavigate();
@@ -72,7 +73,14 @@ const useAuth = () => {
           } catch (e) {
             console.warn('Failed to fetch Google userinfo', e);
           }
-          navigate('/app', { replace: true });
+          const isSwitching = sessionStorage.getItem(SWITCH_FLAG) === '1';
+          if (isSwitching) {
+            sessionStorage.removeItem(SWITCH_FLAG);
+            // Reload current page so all views (including Kanban) re-fetch data
+            window.location.reload();
+          } else {
+            navigate('/app', { replace: true });
+          }
         },
       });
 
@@ -92,6 +100,16 @@ const useAuth = () => {
 
   const loginWithGoogle = useCallback(() => {
     tokenClientRef.current?.requestAccessToken();
+  }, []);
+
+  const switchAccount = useCallback(() => {
+    sessionStorage.setItem(SWITCH_FLAG, '1');
+    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(USER_KEY);
+    setIsAuthenticated(false);
+    setUser(null);
+
+    tokenClientRef.current?.requestAccessToken({ prompt: 'select_account' });
   }, []);
 
   const handleAuthCallback = useCallback(async () => {
@@ -134,6 +152,7 @@ const useAuth = () => {
 
   return {
     loginWithGoogle,
+    switchAccount,
     logout: authEvents.logout,
     isAuthenticated,
     isInitialized,
