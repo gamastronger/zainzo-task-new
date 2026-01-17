@@ -12,6 +12,7 @@ import {
 // import * as dropdownData from './data';
 import { IconMail } from '@tabler/icons-react';
 import useAuth from 'src/guards/authGuard/UseAuth';
+import { IconSwitchHorizontal, IconLogout } from '@tabler/icons-react';
 
 type StoredUser = {
   name?: string;
@@ -205,19 +206,33 @@ const Profile = () => {
             fullWidth
             variant="outlined"
             onClick={handleSwitchAccount}
-            sx={{ borderRadius: 2, justifyContent: 'flex-start', textTransform: 'none' }}
+            startIcon={<IconSwitchHorizontal size={18} />}
+            sx={{
+              borderRadius: 2,
+              justifyContent: 'flex-start',
+              textTransform: 'none',
+              pl: 1.5,
+            }}
           >
             Switch account
           </Button>
-          <Button
+
+                    <Button
             fullWidth
             variant="outlined"
             color="error"
             onClick={handleLogout}
-            sx={{ borderRadius: 2, justifyContent: 'flex-start', textTransform: 'none' }}
+            startIcon={<IconLogout size={18} />}
+            sx={{
+              borderRadius: 2,
+              justifyContent: 'flex-start',
+              textTransform: 'none',
+              pl: 1.5,
+            }}
           >
             Sign out
           </Button>
+
         </Stack>
       </Menu>
     </Box>
