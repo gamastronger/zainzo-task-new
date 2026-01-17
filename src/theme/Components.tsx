@@ -241,7 +241,7 @@ const components: any = (theme: Theme) => {
     MuiCardContent: {
       styleOverrides: {
         root: {
-          padding: '24px',
+          padding: '0px',
         },
       },
     },

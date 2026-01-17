@@ -46,11 +46,13 @@ const FullLayout: FC = () => {
         {/* PageContent */}
         {customizer.isHorizontal ? <Navigation /> : ''}
         <Container
+          maxWidth={false}
+          disableGutters={isKanbanPage}
           sx={{
-            maxWidth: customizer.isLayout === 'boxed' ? 'lg' : '100%!important',
+            maxWidth: isKanbanPage ? 'none' : (customizer.isLayout === 'boxed' ? 'lg' : '100%!important'),
             paddingTop: isKanbanPage ? 0 : { xs: '16px', sm: '24px' },
-            paddingLeft: isKanbanPage ? 0 : { xs: '16px', sm: '24px' },
-            paddingRight: isKanbanPage ? 0 : { xs: '16px', sm: '24px' },
+            paddingLeft: isKanbanPage ? '0!important' : { xs: '16px', sm: '24px' },
+            paddingRight: isKanbanPage ? '0!important' : { xs: '16px', sm: '24px' },
             marginTop: { xs: '56px', lg: `${headerHeight}px` },
             overflow: 'hidden',
             height: isKanbanPage ? `calc(100vh - ${headerHeight}px)` : 'auto',

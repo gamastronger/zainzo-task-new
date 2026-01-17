@@ -233,8 +233,9 @@ export default function KanbanBoard({ onRequestAddColumn }: KanbanBoardProps) {
           <Box
             display="flex"
             gap={2}
-            p={2}
             sx={{
+              px: 2,
+              py: 2,
               overflowX: 'auto',
               height: '100%',
               bgcolor: 'rgb(249, 251, 255)',

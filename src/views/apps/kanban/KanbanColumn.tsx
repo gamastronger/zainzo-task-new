@@ -224,8 +224,22 @@ const KanbanColumn = ({ column, cards, completedCards = [], columnColor, onAddCa
             flexDirection: 'column',
             gap: 1,
             minHeight: 100,
-            // Bagian "tugas saya" tidak memakai scroll overlay;
-            // biarkan kolom tumbuh dan halaman yang melakukan scroll.
+            maxHeight: 'calc(100vh - 280px)',
+            overflowY: 'auto',
+            pr: 0.5,
+            '&::-webkit-scrollbar': {
+              width: 6,
+            },
+            '&::-webkit-scrollbar-track': {
+              backgroundColor: 'transparent',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+              borderRadius: 3,
+              '&:hover': {
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
+              },
+            },
           }}
         >
           {cards.length === 0 && completedCards.length > 0 ? (
