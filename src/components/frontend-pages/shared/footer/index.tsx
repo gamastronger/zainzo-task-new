@@ -208,19 +208,43 @@ const Footer: React.FC = () => {
           );
         })}
         {/* Special row for 'Perusahaan' and license image */}
-        <Grid item xs={12} sm={6} md={3.5} sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+        <Grid
+          item
+          xs={12}
+          sm={6}
+          md={3.5}
+          sx={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 2,
+            flexDirection: { xs: 'column', md: 'row' },
+          }}
+        >
           {/* Perusahaan column */}
           {(() => {
             const perusahaanGroup = footerLinks.find((g) => g.children.find((c) => c.titleText === 'Perusahaan'));
             return perusahaanGroup ? (
-              <Box sx={{ minWidth: 180 }}>
+              <Box sx={{ minWidth: { xs: 'auto', md: 180 } }}>
                 {isMobileLike ? <MobileSection group={perusahaanGroup} /> : <DesktopSection group={perusahaanGroup} />}
               </Box>
             ) : null;
           })()}
-          {/* License image */}
-          <Box sx={{ display: 'flex', alignItems: 'center', ml: { xs: 0, md: 2 }, mt: { xs: 2, md: 0 } }}>
-            <img src={licenseImg} alt="license" style={{ maxWidth: 90, height: 'auto', display: 'block' }} />
+          {/* License image - responsive */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              ml: { xs: 0, md: 2 },
+              mt: { xs: 1.5, md: 0 },
+              justifyContent: { xs: 'flex-start', md: 'center' },
+            }}
+          >
+            <Box
+              component="img"
+              src={licenseImg}
+              alt="license"
+              sx={{ maxWidth: { xs: 120, md: 90 }, height: 'auto', display: 'block' }}
+            />
           </Box>
         </Grid>
       </Grid>
