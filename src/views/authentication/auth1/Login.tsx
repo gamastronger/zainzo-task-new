@@ -9,7 +9,8 @@ import AuthLogin from '../authForms/AuthLogin';
 
 const Login = () => (
   <PageContainer title="Login" description="this is Login page">
-    <Grid container spacing={0} sx={{ overflowX: 'hidden' }}>
+    <Grid container spacing={0} sx={{ overflowX: 'hidden', minHeight: '100vh' }}>
+      {/* LEFT — BRAND / ILLUSTRATION */}
       <Grid
         item
         xs={12}
@@ -24,55 +25,44 @@ const Login = () => (
             backgroundSize: '400% 400%',
             animation: 'gradient 15s ease infinite',
             position: 'absolute',
-            height: '100%',
-            width: '100%',
-            opacity: '0.3',
+            inset: 0,
+            opacity: 0.3,
           },
         }}
       >
-        <Box position="relative">
+        <Box position="relative" height="100%">
+          {/* LOGO */}
           <Box px={3} py={2} display="flex" alignItems="center" gap={1}>
             <img
               src={ztLogo}
               alt="Zainzo Task Logo"
-              style={{
-                width: '24px',
-                height: '24px',
-              }}
+              style={{ width: 24, height: 24 }}
             />
-            <Typography
-              variant="h6"
-              fontWeight={600}
-              sx={{
-                fontSize: '1.1rem',
-                color: '#000000',
-              }}
-            >
+            <Typography fontWeight={600} fontSize="1.1rem" color="#000">
               Zainzo Task
             </Typography>
           </Box>
+
+          {/* ILLUSTRATION */}
           <Box
+            height="calc(100vh - 75px)"
+            display={{ xs: 'none', lg: 'flex' }}
             alignItems="center"
             justifyContent="center"
-            height={'calc(100vh - 75px)'}
-            sx={{
-              display: {
-                xs: 'none',
-                lg: 'flex',
-              },
-            }}
           >
             <img
               src={img1}
-              alt="bg"
+              alt="background illustration"
               style={{
                 width: '100%',
-                maxWidth: '500px',
+                maxWidth: 500,
               }}
             />
           </Box>
         </Box>
       </Grid>
+
+      {/* RIGHT — LOGIN FORM */}
       <Grid
         item
         xs={12}
@@ -80,14 +70,23 @@ const Login = () => (
         lg={5}
         xl={4}
         display="flex"
-        justifyContent="center"
         alignItems="center"
+        justifyContent="center"
       >
-        <Box p={4}>
+        <Box
+          width="100%"
+          maxWidth={420}
+          px={4}
+          py={6}
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          textAlign="center"
+        >
           <AuthLogin
-            title="Welcome to Zainzo"
+            title="Welcome to Zainzo Task"
             subtext={
-              <Typography variant="subtitle1" color="textSecondary" mb={1}>
+              <Typography variant="subtitle1" color="textSecondary" mb={0}>
                 Your Task Management Dashboard
               </Typography>
             }
