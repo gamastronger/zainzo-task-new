@@ -177,9 +177,13 @@ function MobileSection({ group }: { group: FooterGroup }) {
 }
 
 /* ----------------------------------- Footer ----------------------------------- */
+
 const Footer: React.FC = () => {
   const theme = useTheme();
   const isMobileLike = useMediaQuery(theme.breakpoints.down('md'));
+
+  // Path to license image in public folder
+  const licenseImg = '/license.png';
 
   return (
     <Container maxWidth="lg" sx={{ pt: { xs: 3.5, lg: 7.5 } }}>
@@ -191,11 +195,34 @@ const Footer: React.FC = () => {
         alignItems="flex-start"
         mb={{ xs: 2, md: 5 }}
       >
-        {footerLinks.map((group) => (
-          <Grid key={group.id} item xs={12} sm={6} md={2.5}>
-            {isMobileLike ? <MobileSection group={group} /> : <DesktopSection group={group} />}
-          </Grid>
-        ))}
+        {/* Render all columns except 'Perusahaan' */}
+        {footerLinks.map((group) => {
+          // Find 'Perusahaan' group
+          if (group.children.find((c) => c.titleText === 'Perusahaan')) {
+            return null;
+          }
+          return (
+            <Grid key={group.id} item xs={12} sm={6} md={2.5}>
+              {isMobileLike ? <MobileSection group={group} /> : <DesktopSection group={group} />}
+            </Grid>
+          );
+        })}
+        {/* Special row for 'Perusahaan' and license image */}
+        <Grid item xs={12} sm={6} md={3.5} sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+          {/* Perusahaan column */}
+          {(() => {
+            const perusahaanGroup = footerLinks.find((g) => g.children.find((c) => c.titleText === 'Perusahaan'));
+            return perusahaanGroup ? (
+              <Box sx={{ minWidth: 180 }}>
+                {isMobileLike ? <MobileSection group={perusahaanGroup} /> : <DesktopSection group={perusahaanGroup} />}
+              </Box>
+            ) : null;
+          })()}
+          {/* License image */}
+          <Box sx={{ display: 'flex', alignItems: 'center', ml: { xs: 0, md: 2 }, mt: { xs: 2, md: 0 } }}>
+            <img src={licenseImg} alt="license" style={{ maxWidth: 90, height: 'auto', display: 'block' }} />
+          </Box>
+        </Grid>
       </Grid>
 
       <Divider />
