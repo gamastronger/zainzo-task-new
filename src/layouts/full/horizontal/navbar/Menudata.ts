@@ -6,7 +6,7 @@ import { uniqueId } from 'lodash';
 const Menuitems = [
   {
     id: uniqueId(),
-    title: 'Kanban',
+    title: 'Zainzo Task',
     icon: IconLayoutKanban,
     href: '/app',
   },

@@ -19,7 +19,7 @@ const KanbanPage = () => {
   }, []);
 
   return (
-    <PageContainer title="Kanban" description="Manage work with the Kanban board">
+    <PageContainer title="Zainzo Task" description="Manage work with the Kanban board">
       <Box sx={{ 
         height: '100%',
         width: '100%',
