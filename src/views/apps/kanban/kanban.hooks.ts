@@ -198,22 +198,23 @@ export function useKanban() {
       const { description, labels, image } = parseTaskNotes(task.notes);
 
       setBoard((prev) => ({
-      ...prev,
-      cards: {
-        ...prev.cards,
-        [task.id]: {
-          id: task.id,
-          title: task.title,
-          description,
-          completed: task.status === 'completed',
-          dueDate: task.due,
-          labels,
-          image,
+        ...prev,
+        cards: {
+          ...prev.cards,
+          [task.id]: {
+            id: task.id,
+            title: task.title,
+            description,
+            completed: task.status === 'completed',
+            dueDate: task.due,
+            labels,
+            image,
+          },
         },
-      },
         columns: prev.columns.map((c) =>
           c.id === columnId
-            ? { ...c, cardIds: [...c.cardIds, task.id] }
+            // Masukkan task baru di depan agar muncul paling atas
+            ? { ...c, cardIds: [task.id, ...c.cardIds] }
             : c
         ),
       }));

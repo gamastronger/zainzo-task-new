@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { FormEvent, useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -76,7 +76,10 @@ const KanbanColumn = ({ column, cards, completedCards = [], columnColor, onAddCa
     labels: '',
   });
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (event?: FormEvent<HTMLFormElement>) => {
+    if (event) {
+      event.preventDefault();
+    }
     if (!form.title.trim()) {
       return;
     }
@@ -536,42 +539,48 @@ const KanbanColumn = ({ column, cards, completedCards = [], columnColor, onAddCa
 
       <Dialog open={addOpen} onClose={() => setAddOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Add Card</DialogTitle>
-        <DialogContent dividers>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField
-              label="Title"
-              value={form.title}
-              onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
-              required
-              autoFocus
-            />
-            <TextField
-              label="Description"
-              multiline
-              minRows={3}
-              value={form.description}
-              onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
-            />
-            <TextField
-              label="Due Date"
-              type="date"
-              InputLabelProps={{ shrink: true }}
-              value={form.dueDate}
-              onChange={(event) => setForm((prev) => ({ ...prev, dueDate: event.target.value }))}
-            />
-            <TextField
-              label="Labels (comma separated)"
-              value={form.labels}
-              onChange={(event) => setForm((prev) => ({ ...prev, labels: event.target.value }))}
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setAddOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleSubmit} disabled={!form.title.trim()}>
-            Add Card
-          </Button>
-        </DialogActions>
+        <Box component="form" onSubmit={handleSubmit} noValidate>
+          <DialogContent dividers>
+            <Stack spacing={2} sx={{ mt: 1 }}>
+              <TextField
+                label="Title"
+                value={form.title}
+                onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
+                required
+                autoFocus
+              />
+              <TextField
+                label="Description"
+                multiline
+                minRows={3}
+                value={form.description}
+                onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
+              />
+              <TextField
+                label="Due Date"
+                type="date"
+                InputLabelProps={{ shrink: true }}
+                value={form.dueDate}
+                onChange={(event) => setForm((prev) => ({ ...prev, dueDate: event.target.value }))}
+              />
+              <TextField
+                label="Labels (comma separated)"
+                value={form.labels}
+                onChange={(event) => setForm((prev) => ({ ...prev, labels: event.target.value }))}
+              />
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setAddOpen(false)}>Cancel</Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={!form.title.trim()}
+            >
+              Add Card
+            </Button>
+          </DialogActions>
+        </Box>
       </Dialog>
     </Box>
   );

@@ -21,6 +21,29 @@ type StoredUser = {
   jobTitle?: string;
 } | null;
 
+function normalizeAvatarUrl(picture?: string): string | undefined {
+  if (!picture) return undefined;
+
+  try {
+    const url = new URL(picture);
+
+    // Optimalkan avatar Google menjadi resolusi lebih tinggi
+    if (url.hostname.includes('googleusercontent.com')) {
+      // Pola umum: ...=s96-c  → ganti ke s256-c
+      if (url.searchParams.has('sz')) {
+        url.searchParams.set('sz', '256');
+      } else if (url.pathname.includes('=s96-c')) {
+        url.pathname = url.pathname.replace('=s96-c', '=s256-c');
+      }
+    }
+
+    return url.toString();
+  } catch {
+    // Jika bukan URL valid, kembalikan apa adanya
+    return picture;
+  }
+}
+
 function getStoredUser(): StoredUser {
   try {
     if (typeof window === 'undefined') return null;
@@ -66,8 +89,9 @@ const Profile = () => {
 
   const userName = userData?.name || userData?.email?.split('@')[0] || 'User';
   const userEmail = userData?.email || 'user@example.com';
+  const rawPicture = (user as any)?.picture || userData?.picture;
   const userAvatar =
-    userData?.picture ||
+    normalizeAvatarUrl(rawPicture) ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(
       userName
     )}&background=5D87FF&color=fff&size=128`;
@@ -105,7 +129,12 @@ const Profile = () => {
     <Box>
       {/* Avatar Trigger */}
       <IconButton color="inherit" onClick={(e) => setAnchorEl(e.currentTarget)}>
-        <Avatar src={userAvatar} alt={userName} sx={{ width: 34, height: 34 }} />
+        <Avatar
+          src={userAvatar}
+          alt={userName}
+          sx={{ width: 34, height: 34 }}
+          imgProps={{ referrerPolicy: 'no-referrer' }}
+        />
       </IconButton>
 
       {/* Dropdown */}
@@ -126,7 +155,12 @@ const Profile = () => {
       >
         {/* User Header */}
         <Stack direction="row" spacing={2} alignItems="center">
-          <Avatar src={userAvatar} sx={{ width: 64, height: 64 }} />
+          <Avatar
+            src={userAvatar}
+            alt={userName}
+            sx={{ width: 64, height: 64 }}
+            imgProps={{ referrerPolicy: 'no-referrer' }}
+          />
           <Box>
             <Typography fontWeight={600}>{userName}</Typography>
             <Typography variant="body2" color="text.secondary">
